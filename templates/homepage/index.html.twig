@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Domovská stránka
+{% endblock %}
+
+{% block body %}
+
+        <h1>
+            <a href="{{ path('car_add') }}">
+                <button>Přidat</button>
+            </a>
+            Vaše auta
+        </h1>
+        <table>
+            <tr>
+                <th>
+                    SPZ
+                </th>
+                <th>
+                    Typ
+                </th>
+                <th>
+                    Akce
+                </th>
+            </tr>
+            {% for car in cars %}
+                <tr>
+                    <td>
+                        {{ car.licencePlate }}
+                    </td>
+                    <td>
+                        {{ car.type }}
+                    </td>
+                    <td>
+                        <a href="{{ path('car_detail', {'id': car.id}) }}">
+                            <button>Zobrazit</button>
+                        </a>
+                        <a href="{{ path('car_delete', {'id': car.id}) }}">
+                            <button>Smazat</button>
+                        </a>
+                    </td>
+                </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

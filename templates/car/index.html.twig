@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detail auta - {{car.licencePlate}} {% endblock %}
+
+{% block body %}
+    <h1>
+        {{ car.licencePlate }} - {{ car.owner.username }}
+    </h1>
+{% endblock %}

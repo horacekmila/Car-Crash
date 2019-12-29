@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administrace!{% endblock %}
+
+{% block body %}
+    <h1>Autíčka všech</h1>
+    <table>
+        <tr>
+            <th>
+                Uživatelské jméno
+            </th>
+            <th>
+                SPZ
+            </th>
+            <th>
+                Typ
+            </th>
+            <th>
+                Akce
+            </th>
+        </tr>
+        {% for car in cars %}
+            <tr>
+                <td>
+                    {{ car.owner.username }}
+                </td>
+                <td>
+                    {{ car.licencePlate }}
+                </td>
+                <td>
+                    {{ car.type }}
+                </td>
+                <td>
+                    <a href="{{ path('car_detail', {'id': car.id}) }}">
+                        <button>Zobrazit</button>
+                    </a>
+                    <a href="{{ path('car_delete', {'id': car.id}) }}">
+                        <button>Smazat</button>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

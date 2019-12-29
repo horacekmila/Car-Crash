@@ -1,0 +1,10 @@
+9b2758,::1,POST,http://localhost:8000/login,1577462303,,302
+f29ea0,::1,GET,http://localhost:8000/,1577462303,,200
+4c4e3c,::1,GET,http://localhost:8000/,1577462375,,302
+d4fb01,::1,GET,http://localhost:8000/login,1577462375,,200
+69fcb0,::1,POST,http://localhost:8000/login,1577462378,,302
+d0d52f,::1,GET,http://localhost:8000/,1577462378,,200
+241be8,::1,GET,http://localhost:8000/admin,1577462387,,200
+e91f57,::1,GET,http://localhost:8000/admin,1577462393,,200
+7b3f96,::1,GET,http://localhost:8000/admin,1577462441,,200
+a22f50,::1,GET,http://localhost:8000/admin,1577462466,,200
