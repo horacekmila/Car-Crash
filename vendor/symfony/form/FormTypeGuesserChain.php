@@ -41,7 +41,7 @@ class FormTypeGuesserChain implements FormTypeGuesserInterface
     /**
      * {@inheritdoc}
      */
-    public function guessType(string $class, string $property)
+    public function guessType($class, $property)
     {
         return $this->guess(function ($guesser) use ($class, $property) {
             return $guesser->guessType($class, $property);
@@ -51,7 +51,7 @@ class FormTypeGuesserChain implements FormTypeGuesserInterface
     /**
      * {@inheritdoc}
      */
-    public function guessRequired(string $class, string $property)
+    public function guessRequired($class, $property)
     {
         return $this->guess(function ($guesser) use ($class, $property) {
             return $guesser->guessRequired($class, $property);
@@ -61,7 +61,7 @@ class FormTypeGuesserChain implements FormTypeGuesserInterface
     /**
      * {@inheritdoc}
      */
-    public function guessMaxLength(string $class, string $property)
+    public function guessMaxLength($class, $property)
     {
         return $this->guess(function ($guesser) use ($class, $property) {
             return $guesser->guessMaxLength($class, $property);
@@ -71,7 +71,7 @@ class FormTypeGuesserChain implements FormTypeGuesserInterface
     /**
      * {@inheritdoc}
      */
-    public function guessPattern(string $class, string $property)
+    public function guessPattern($class, $property)
     {
         return $this->guess(function ($guesser) use ($class, $property) {
             return $guesser->guessPattern($class, $property);
@@ -84,8 +84,10 @@ class FormTypeGuesserChain implements FormTypeGuesserInterface
      *
      * @param \Closure $closure The closure to execute. Accepts a guesser
      *                          as argument and should return a Guess instance
+     *
+     * @return Guess|null The guess with the highest confidence
      */
-    private function guess(\Closure $closure): ?Guess
+    private function guess(\Closure $closure)
     {
         $guesses = [];
 

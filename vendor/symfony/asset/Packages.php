@@ -26,7 +26,8 @@ class Packages
     private $packages = [];
 
     /**
-     * @param PackageInterface[] $packages Additional packages indexed by name
+     * @param PackageInterface   $defaultPackage The default package
+     * @param PackageInterface[] $packages       Additional packages indexed by name
      */
     public function __construct(PackageInterface $defaultPackage = null, array $packages = [])
     {
@@ -42,7 +43,13 @@ class Packages
         $this->defaultPackage = $defaultPackage;
     }
 
-    public function addPackage(string $name, PackageInterface $package)
+    /**
+     * Adds a  package.
+     *
+     * @param string           $name    The package name
+     * @param PackageInterface $package The package
+     */
+    public function addPackage($name, PackageInterface $package)
     {
         $this->packages[$name] = $package;
     }
@@ -57,7 +64,7 @@ class Packages
      * @throws InvalidArgumentException If there is no package by that name
      * @throws LogicException           If no default package is defined
      */
-    public function getPackage(string $name = null)
+    public function getPackage($name = null)
     {
         if (null === $name) {
             if (null === $this->defaultPackage) {
@@ -82,7 +89,7 @@ class Packages
      *
      * @return string The current version
      */
-    public function getVersion(string $path, string $packageName = null)
+    public function getVersion($path, $packageName = null)
     {
         return $this->getPackage($packageName)->getVersion($path);
     }
@@ -97,7 +104,7 @@ class Packages
      *
      * @return string A public path which takes into account the base path and URL path
      */
-    public function getUrl(string $path, string $packageName = null)
+    public function getUrl($path, $packageName = null)
     {
         return $this->getPackage($packageName)->getUrl($path);
     }

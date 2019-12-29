@@ -23,26 +23,26 @@ use Twig\NodeVisitor\AbstractNodeVisitor;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class TranslationNodeVisitor extends AbstractNodeVisitor
+class TranslationNodeVisitor extends AbstractNodeVisitor
 {
     const UNDEFINED_DOMAIN = '_undefined';
 
     private $enabled = false;
     private $messages = [];
 
-    public function enable(): void
+    public function enable()
     {
         $this->enabled = true;
         $this->messages = [];
     }
 
-    public function disable(): void
+    public function disable()
     {
         $this->enabled = false;
         $this->messages = [];
     }
 
-    public function getMessages(): array
+    public function getMessages()
     {
         return $this->messages;
     }
@@ -50,7 +50,7 @@ final class TranslationNodeVisitor extends AbstractNodeVisitor
     /**
      * {@inheritdoc}
      */
-    protected function doEnterNode(Node $node, Environment $env): Node
+    protected function doEnterNode(Node $node, Environment $env)
     {
         if (!$this->enabled) {
             return $node;
@@ -90,17 +90,15 @@ final class TranslationNodeVisitor extends AbstractNodeVisitor
     /**
      * {@inheritdoc}
      */
-    protected function doLeaveNode(Node $node, Environment $env): ?Node
+    protected function doLeaveNode(Node $node, Environment $env)
     {
         return $node;
     }
 
     /**
      * {@inheritdoc}
-     *
-     * @return int
      */
-    public function getPriority(): int
+    public function getPriority()
     {
         return 0;
     }

@@ -12,8 +12,7 @@
 namespace Symfony\Component\Security\Http\Firewall;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -24,10 +23,8 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
  * already present.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @final
  */
-class AnonymousAuthenticationListener extends AbstractListener
+class AnonymousAuthenticationListener implements ListenerInterface
 {
     private $tokenStorage;
     private $secret;
@@ -43,17 +40,9 @@ class AnonymousAuthenticationListener extends AbstractListener
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function supports(Request $request): ?bool
-    {
-        return null; // always run authenticate() lazily with lazy firewalls
-    }
-
-    /**
      * Handles anonymous authentication.
      */
-    public function authenticate(RequestEvent $event)
+    public function handle(GetResponseEvent $event)
     {
         if (null !== $this->tokenStorage->getToken()) {
             return;

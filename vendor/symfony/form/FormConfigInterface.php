@@ -149,18 +149,21 @@ interface FormConfigInterface
     /**
      * Returns whether the attribute with the given name exists.
      *
+     * @param string $name The attribute name
+     *
      * @return bool Whether the attribute exists
      */
-    public function hasAttribute(string $name);
+    public function hasAttribute($name);
 
     /**
      * Returns the value of the given attribute.
      *
-     * @param mixed $default The value returned if the attribute does not exist
+     * @param string $name    The attribute name
+     * @param mixed  $default The value returned if the attribute does not exist
      *
      * @return mixed The attribute value
      */
-    public function getAttribute(string $name, $default = null);
+    public function getAttribute($name, $default = null);
 
     /**
      * Returns the initial data of the form.
@@ -233,16 +236,19 @@ interface FormConfigInterface
     /**
      * Returns whether a specific option exists.
      *
+     * @param string $name The option name,
+     *
      * @return bool Whether the option exists
      */
-    public function hasOption(string $name);
+    public function hasOption($name);
 
     /**
      * Returns the value of a specific option.
      *
-     * @param mixed $default The value returned if the option does not exist
+     * @param string $name    The option name
+     * @param mixed  $default The value returned if the option does not exist
      *
      * @return mixed The option value
      */
-    public function getOption(string $name, $default = null);
+    public function getOption($name, $default = null);
 }

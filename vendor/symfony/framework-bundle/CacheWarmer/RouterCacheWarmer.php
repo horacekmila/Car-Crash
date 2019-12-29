@@ -12,10 +12,10 @@
 namespace Symfony\Bundle\FrameworkBundle\CacheWarmer;
 
 use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 /**
  * Generates the router matcher and generator classes.
@@ -35,9 +35,11 @@ class RouterCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterf
     }
 
     /**
-     * {@inheritdoc}
+     * Warms up the cache.
+     *
+     * @param string $cacheDir The cache directory
      */
-    public function warmUp(string $cacheDir)
+    public function warmUp($cacheDir)
     {
         $router = $this->container->get('router');
 
@@ -47,7 +49,7 @@ class RouterCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterf
             return;
         }
 
-        throw new \LogicException(sprintf('The router %s cannot be warmed up because it does not implement %s.', \get_class($router), WarmableInterface::class));
+        @trigger_error(sprintf('Passing a %s without implementing %s is deprecated since Symfony 4.1.', RouterInterface::class, WarmableInterface::class), \E_USER_DEPRECATED);
     }
 
     /**
@@ -55,7 +57,7 @@ class RouterCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterf
      *
      * @return bool always true
      */
-    public function isOptional(): bool
+    public function isOptional()
     {
         return true;
     }
@@ -63,7 +65,7 @@ class RouterCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterf
     /**
      * {@inheritdoc}
      */
-    public static function getSubscribedServices(): array
+    public static function getSubscribedServices()
     {
         return [
             'router' => RouterInterface::class,

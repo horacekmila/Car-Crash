@@ -11,7 +11,7 @@
 
 namespace Symfony\Bridge\Doctrine\Form\ChoiceList;
 
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
 use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
@@ -40,26 +40,25 @@ class DoctrineChoiceLoader implements ChoiceLoaderInterface
      * passed which optimizes the object loading for one of the Doctrine
      * mapper implementations.
      *
-     * @param string $class The class name of the loaded objects
+     * @param ObjectManager              $manager      The object manager
+     * @param string                     $class        The class name of the loaded objects
+     * @param IdReader                   $idReader     The reader for the object IDs
+     * @param EntityLoaderInterface|null $objectLoader The objects loader
      */
     public function __construct(ObjectManager $manager, string $class, IdReader $idReader = null, EntityLoaderInterface $objectLoader = null)
     {
         $classMetadata = $manager->getClassMetadata($class);
 
-        if ($idReader && !$idReader->isSingleId()) {
-            throw new \InvalidArgumentException(sprintf('The second argument `$idReader` of "%s" must be null when the query cannot be optimized because of composite id fields.', __METHOD__));
-        }
-
         $this->manager = $manager;
         $this->class = $classMetadata->getName();
-        $this->idReader = $idReader;
+        $this->idReader = $idReader ?: new IdReader($manager, $classMetadata);
         $this->objectLoader = $objectLoader;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function loadChoiceList(callable $value = null)
+    public function loadChoiceList($value = null)
     {
         if ($this->choiceList) {
             return $this->choiceList;
@@ -75,7 +74,7 @@ class DoctrineChoiceLoader implements ChoiceLoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function loadValuesForChoices(array $choices, callable $value = null)
+    public function loadValuesForChoices(array $choices, $value = null)
     {
         // Performance optimization
         if (empty($choices)) {
@@ -84,10 +83,10 @@ class DoctrineChoiceLoader implements ChoiceLoaderInterface
 
         // Optimize performance for single-field identifiers. We already
         // know that the IDs are used as values
-        $optimize = $this->idReader && (null === $value || \is_array($value) && $value[0] === $this->idReader);
+        $optimize = null === $value || \is_array($value) && $value[0] === $this->idReader;
 
         // Attention: This optimization does not check choices for existence
-        if ($optimize && !$this->choiceList) {
+        if ($optimize && !$this->choiceList && $this->idReader->isSingleId()) {
             $values = [];
 
             // Maintain order and indices of the given objects
@@ -107,7 +106,7 @@ class DoctrineChoiceLoader implements ChoiceLoaderInterface
     /**
      * {@inheritdoc}
      */
-    public function loadChoicesForValues(array $values, callable $value = null)
+    public function loadChoicesForValues(array $values, $value = null)
     {
         // Performance optimization
         // Also prevents the generation of "WHERE id IN ()" queries through the
@@ -121,9 +120,9 @@ class DoctrineChoiceLoader implements ChoiceLoaderInterface
 
         // Optimize performance in case we have an object loader and
         // a single-field identifier
-        $optimize = $this->idReader && (null === $value || \is_array($value) && $this->idReader === $value[0]);
+        $optimize = null === $value || \is_array($value) && $this->idReader === $value[0];
 
-        if ($optimize && !$this->choiceList && $this->objectLoader) {
+        if ($optimize && !$this->choiceList && $this->objectLoader && $this->idReader->isSingleId()) {
             $unorderedObjects = $this->objectLoader->getEntitiesByIds($this->idReader->getIdField(), $values);
             $objectsById = [];
             $objects = [];

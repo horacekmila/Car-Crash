@@ -22,7 +22,7 @@ use Twig\TwigFunction;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class SecurityExtension extends AbstractExtension
+class SecurityExtension extends AbstractExtension
 {
     private $securityChecker;
 
@@ -31,10 +31,7 @@ final class SecurityExtension extends AbstractExtension
         $this->securityChecker = $securityChecker;
     }
 
-    /**
-     * @param mixed $object
-     */
-    public function isGranted($role, $object = null, string $field = null): bool
+    public function isGranted($role, $object = null, $field = null)
     {
         if (null === $this->securityChecker) {
             return false;
@@ -54,10 +51,18 @@ final class SecurityExtension extends AbstractExtension
     /**
      * {@inheritdoc}
      */
-    public function getFunctions(): array
+    public function getFunctions()
     {
         return [
             new TwigFunction('is_granted', [$this, 'isGranted']),
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return 'security';
     }
 }

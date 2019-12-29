@@ -29,9 +29,18 @@ class PreloadedExtension implements FormExtensionInterface
      *
      * @param FormTypeInterface[]            $types          The types that the extension should support
      * @param FormTypeExtensionInterface[][] $typeExtensions The type extensions that the extension should support
+     * @param FormTypeGuesserInterface|null  $typeGuesser    The guesser that the extension should support
      */
     public function __construct(array $types, array $typeExtensions, FormTypeGuesserInterface $typeGuesser = null)
     {
+        foreach ($typeExtensions as $extensions) {
+            foreach ($extensions as $typeExtension) {
+                if (!method_exists($typeExtension, 'getExtendedTypes')) {
+                    @trigger_error(sprintf('Not implementing the static getExtendedTypes() method in %s when implementing the %s is deprecated since Symfony 4.2. The method will be added to the interface in 5.0.', \get_class($typeExtension), FormTypeExtensionInterface::class), E_USER_DEPRECATED);
+                }
+            }
+        }
+
         $this->typeExtensions = $typeExtensions;
         $this->typeGuesser = $typeGuesser;
 
@@ -43,7 +52,7 @@ class PreloadedExtension implements FormExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function getType(string $name)
+    public function getType($name)
     {
         if (!isset($this->types[$name])) {
             throw new InvalidArgumentException(sprintf('The type "%s" can not be loaded by this extension', $name));
@@ -55,7 +64,7 @@ class PreloadedExtension implements FormExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function hasType(string $name)
+    public function hasType($name)
     {
         return isset($this->types[$name]);
     }
@@ -63,7 +72,7 @@ class PreloadedExtension implements FormExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function getTypeExtensions(string $name)
+    public function getTypeExtensions($name)
     {
         return isset($this->typeExtensions[$name])
             ? $this->typeExtensions[$name]
@@ -73,7 +82,7 @@ class PreloadedExtension implements FormExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function hasTypeExtensions(string $name)
+    public function hasTypeExtensions($name)
     {
         return !empty($this->typeExtensions[$name]);
     }

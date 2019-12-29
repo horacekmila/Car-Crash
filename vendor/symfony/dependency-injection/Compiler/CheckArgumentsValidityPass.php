@@ -32,7 +32,7 @@ class CheckArgumentsValidityPass extends AbstractRecursivePass
     /**
      * {@inheritdoc}
      */
-    protected function processValue($value, bool $isRoot = false)
+    protected function processValue($value, $isRoot = false)
     {
         if (!$value instanceof Definition) {
             return parent::processValue($value, $isRoot);
@@ -81,7 +81,5 @@ class CheckArgumentsValidityPass extends AbstractRecursivePass
                 }
             }
         }
-
-        return null;
     }
 }

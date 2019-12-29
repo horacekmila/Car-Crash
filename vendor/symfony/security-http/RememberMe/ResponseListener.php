@@ -12,19 +12,17 @@
 namespace Symfony\Component\Security\Http\RememberMe;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Adds remember-me cookies to the Response.
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * @final
  */
 class ResponseListener implements EventSubscriberInterface
 {
-    public function onKernelResponse(ResponseEvent $event)
+    public function onKernelResponse(FilterResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -41,7 +39,7 @@ class ResponseListener implements EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public static function getSubscribedEvents(): array
+    public static function getSubscribedEvents()
     {
         return [KernelEvents::RESPONSE => 'onKernelResponse'];
     }

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Car;
+use App\Entity\Crash;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -25,8 +26,11 @@ class CarController extends AbstractController
      */
     public function index(Car $id)
     {
+        $crashes = $this->em->getRepository(Crash::class)->findBy(["car" => $id]);
+
         return $this->render('car/index.html.twig', [
             'car' => $id,
+            'crashes' => $crashes
         ]);
     }
 

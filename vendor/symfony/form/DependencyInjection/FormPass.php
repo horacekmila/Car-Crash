@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Form\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Argument\ArgumentInterface;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
@@ -19,6 +18,7 @@ use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Form\FormTypeExtensionInterface;
 
 /**
  * Adds all services with the tags "form.type", "form.type_extension" and
@@ -60,7 +60,7 @@ class FormPass implements CompilerPassInterface
         $definition->replaceArgument(2, $this->processFormTypeGuessers($container));
     }
 
-    private function processFormTypes(ContainerBuilder $container): Reference
+    private function processFormTypes(ContainerBuilder $container)
     {
         // Get service locator argument
         $servicesMap = [];
@@ -83,7 +83,7 @@ class FormPass implements CompilerPassInterface
         return ServiceLocatorTagPass::register($container, $servicesMap);
     }
 
-    private function processFormTypeExtensions(ContainerBuilder $container): array
+    private function processFormTypeExtensions(ContainerBuilder $container)
     {
         $typeExtensions = [];
         $typeExtensionsClasses = [];
@@ -95,9 +95,13 @@ class FormPass implements CompilerPassInterface
             $typeExtensionClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
 
             if (isset($tag[0]['extended_type'])) {
+                if (!method_exists($typeExtensionClass, 'getExtendedTypes')) {
+                    @trigger_error(sprintf('Not implementing the static getExtendedTypes() method in %s when implementing the %s is deprecated since Symfony 4.2. The method will be added to the interface in 5.0.', $typeExtensionClass, FormTypeExtensionInterface::class), E_USER_DEPRECATED);
+                }
+
                 $typeExtensions[$tag[0]['extended_type']][] = new Reference($serviceId);
                 $typeExtensionsClasses[] = $typeExtensionClass;
-            } else {
+            } elseif (method_exists($typeExtensionClass, 'getExtendedTypes')) {
                 $extendsTypes = false;
 
                 $typeExtensionsClasses[] = $typeExtensionClass;
@@ -109,6 +113,8 @@ class FormPass implements CompilerPassInterface
                 if (!$extendsTypes) {
                     throw new InvalidArgumentException(sprintf('The getExtendedTypes() method for service "%s" does not return any extended types.', $serviceId));
                 }
+            } else {
+                throw new InvalidArgumentException(sprintf('"%s" tagged services have to implement the static getExtendedTypes() method. Class "%s" for service "%s" does not implement it.', $this->formTypeExtensionTag, $typeExtensionClass, $serviceId));
             }
         }
 
@@ -124,7 +130,7 @@ class FormPass implements CompilerPassInterface
         return $typeExtensions;
     }
 
-    private function processFormTypeGuessers(ContainerBuilder $container): ArgumentInterface
+    private function processFormTypeGuessers(ContainerBuilder $container)
     {
         $guessers = [];
         $guessersClasses = [];

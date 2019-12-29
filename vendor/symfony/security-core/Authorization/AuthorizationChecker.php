@@ -43,7 +43,7 @@ class AuthorizationChecker implements AuthorizationCheckerInterface
      *
      * @throws AuthenticationCredentialsNotFoundException when the token storage has no authentication token
      */
-    final public function isGranted($attribute, $subject = null): bool
+    final public function isGranted($attributes, $subject = null)
     {
         if (null === ($token = $this->tokenStorage->getToken())) {
             throw new AuthenticationCredentialsNotFoundException('The token storage contains no authentication token. One possible reason may be that there is no firewall configured for this URL.');
@@ -53,6 +53,10 @@ class AuthorizationChecker implements AuthorizationCheckerInterface
             $this->tokenStorage->setToken($token = $this->authenticationManager->authenticate($token));
         }
 
-        return $this->accessDecisionManager->decide($token, [$attribute], $subject);
+        if (!\is_array($attributes)) {
+            $attributes = [$attributes];
+        }
+
+        return $this->accessDecisionManager->decide($token, $attributes, $subject);
     }
 }

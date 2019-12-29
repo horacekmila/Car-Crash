@@ -12,6 +12,7 @@
 namespace Symfony\Component\Security\Core\Authorization\Voter;
 
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Role\Role;
 
 /**
  * RoleVoter votes if any attribute starts with a given prefix.
@@ -36,13 +37,17 @@ class RoleVoter implements VoterInterface
         $roles = $this->extractRoles($token);
 
         foreach ($attributes as $attribute) {
+            if ($attribute instanceof Role) {
+                $attribute = $attribute->getRole();
+            }
+
             if (!\is_string($attribute) || 0 !== strpos($attribute, $this->prefix)) {
                 continue;
             }
 
             $result = VoterInterface::ACCESS_DENIED;
             foreach ($roles as $role) {
-                if ($attribute === $role) {
+                if ($attribute === $role->getRole()) {
                     return VoterInterface::ACCESS_GRANTED;
                 }
             }
@@ -53,6 +58,6 @@ class RoleVoter implements VoterInterface
 
     protected function extractRoles(TokenInterface $token)
     {
-        return $token->getRoleNames();
+        return $token->getRoles();
     }
 }

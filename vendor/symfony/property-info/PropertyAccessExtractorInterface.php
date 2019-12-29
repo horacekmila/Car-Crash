@@ -21,14 +21,22 @@ interface PropertyAccessExtractorInterface
     /**
      * Is the property readable?
      *
+     * @param string $class
+     * @param string $property
+     * @param array  $context
+     *
      * @return bool|null
      */
-    public function isReadable(string $class, string $property, array $context = []);
+    public function isReadable($class, $property, array $context = []);
 
     /**
      * Is the property writable?
      *
+     * @param string $class
+     * @param string $property
+     * @param array  $context
+     *
      * @return bool|null
      */
-    public function isWritable(string $class, string $property, array $context = []);
+    public function isWritable($class, $property, array $context = []);
 }

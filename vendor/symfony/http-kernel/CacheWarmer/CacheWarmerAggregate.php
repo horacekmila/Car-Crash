@@ -45,8 +45,10 @@ class CacheWarmerAggregate implements CacheWarmerInterface
 
     /**
      * Warms up the cache.
+     *
+     * @param string $cacheDir The cache directory
      */
-    public function warmUp(string $cacheDir)
+    public function warmUp($cacheDir)
     {
         if ($collectDeprecations = $this->debug && !\defined('PHPUNIT_COMPOSER_INSTALL')) {
             $collectedLogs = [];
@@ -58,7 +60,7 @@ class CacheWarmerAggregate implements CacheWarmerInterface
                 if (isset($collectedLogs[$message])) {
                     ++$collectedLogs[$message]['count'];
 
-                    return null;
+                    return;
                 }
 
                 $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
@@ -78,8 +80,6 @@ class CacheWarmerAggregate implements CacheWarmerInterface
                     'trace' => $backtrace,
                     'count' => 1,
                 ];
-
-                return null;
             });
         }
 
@@ -113,7 +113,7 @@ class CacheWarmerAggregate implements CacheWarmerInterface
      *
      * @return bool always false
      */
-    public function isOptional(): bool
+    public function isOptional()
     {
         return false;
     }

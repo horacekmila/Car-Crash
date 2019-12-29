@@ -17,8 +17,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\AutoExpireFlashBag;
-use Symfony\Component\HttpKernel\DataCollector\DumpDataCollector;
-use Symfony\Component\HttpKernel\DataCollector\ExceptionDataCollector;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -26,8 +24,6 @@ use Twig\Environment;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @internal
  */
 class ProfilerController
 {
@@ -58,7 +54,11 @@ class ProfilerController
      */
     public function homeAction()
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         return new RedirectResponse($this->generator->generate('_profiler_search_results', ['token' => 'empty', 'limit' => 10]), 302, ['Content-Type' => 'text/html']);
     }
@@ -66,19 +66,26 @@ class ProfilerController
     /**
      * Renders a profiler panel for the given token.
      *
+     * @param Request $request The current HTTP request
+     * @param string  $token   The profiler token
+     *
      * @return Response A Response instance
      *
      * @throws NotFoundHttpException
      */
-    public function panelAction(Request $request, string $token)
+    public function panelAction(Request $request, $token)
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         if (null !== $this->cspHandler) {
             $this->cspHandler->disableCsp();
         }
 
-        $panel = $request->query->get('panel');
+        $panel = $request->query->get('panel', 'request');
         $page = $request->query->get('page', 'home');
 
         if ('latest' === $token && $latest = current($this->profiler->find(null, null, 1, null, null, null))) {
@@ -87,22 +94,6 @@ class ProfilerController
 
         if (!$profile = $this->profiler->loadProfile($token)) {
             return new Response($this->twig->render('@WebProfiler/Profiler/info.html.twig', ['about' => 'no_token', 'token' => $token, 'request' => $request]), 200, ['Content-Type' => 'text/html']);
-        }
-
-        if (null === $panel) {
-            $panel = 'request';
-
-            foreach ($profile->getCollectors() as $collector) {
-                if ($collector instanceof ExceptionDataCollector && $collector->hasException()) {
-                    $panel = $collector->getName();
-
-                    break;
-                }
-
-                if ($collector instanceof DumpDataCollector && $collector->getDumpsCount() > 0) {
-                    $panel = $collector->getName();
-                }
-            }
         }
 
         if (!$profile->hasCollector($panel)) {
@@ -125,17 +116,20 @@ class ProfilerController
     /**
      * Renders the Web Debug Toolbar.
      *
+     * @param Request $request The current HTTP Request
+     * @param string  $token   The profiler token
+     *
      * @return Response A Response instance
      *
      * @throws NotFoundHttpException
      */
-    public function toolbarAction(Request $request, string $token = null)
+    public function toolbarAction(Request $request, $token)
     {
         if (null === $this->profiler) {
             throw new NotFoundHttpException('The profiler must be enabled.');
         }
 
-        if ($request->hasSession() && ($session = $request->getSession())->isStarted() && $session->getFlashBag() instanceof AutoExpireFlashBag) {
+        if ($request->hasSession() && ($session = $request->getSession()) && $session->isStarted() && $session->getFlashBag() instanceof AutoExpireFlashBag) {
             // keep current flashes for one more request if using AutoExpireFlashBag
             $session->getFlashBag()->setAll($session->getFlashBag()->peekAll());
         }
@@ -176,7 +170,11 @@ class ProfilerController
      */
     public function searchBarAction(Request $request)
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         if (null !== $this->cspHandler) {
             $this->cspHandler->disableCsp();
@@ -224,13 +222,20 @@ class ProfilerController
     /**
      * Renders the search results.
      *
+     * @param Request $request The current HTTP Request
+     * @param string  $token   The token
+     *
      * @return Response A Response instance
      *
      * @throws NotFoundHttpException
      */
-    public function searchResultsAction(Request $request, string $token)
+    public function searchResultsAction(Request $request, $token)
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         if (null !== $this->cspHandler) {
             $this->cspHandler->disableCsp();
@@ -271,7 +276,11 @@ class ProfilerController
      */
     public function searchAction(Request $request)
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         $ip = $request->query->get('ip');
         $method = $request->query->get('method');
@@ -322,7 +331,11 @@ class ProfilerController
      */
     public function phpinfoAction()
     {
-        $this->denyAccessIfProfilerDisabled();
+        if (null === $this->profiler) {
+            throw new NotFoundHttpException('The profiler must be enabled.');
+        }
+
+        $this->profiler->disable();
 
         if (null !== $this->cspHandler) {
             $this->cspHandler->disableCsp();
@@ -382,16 +395,7 @@ class ProfilerController
         return $this->templateManager;
     }
 
-    private function denyAccessIfProfilerDisabled()
-    {
-        if (null === $this->profiler) {
-            throw new NotFoundHttpException('The profiler must be enabled.');
-        }
-
-        $this->profiler->disable();
-    }
-
-    private function renderWithCspNonces(Request $request, string $template, array $variables, int $code = 200, array $headers = ['Content-Type' => 'text/html']): Response
+    private function renderWithCspNonces(Request $request, $template, $variables, $code = 200, $headers = ['Content-Type' => 'text/html'])
     {
         $response = new Response('', $code, $headers);
 

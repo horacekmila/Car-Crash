@@ -58,7 +58,7 @@ class AttributeMetadata implements AttributeMetadataInterface
     /**
      * {@inheritdoc}
      */
-    public function getName(): string
+    public function getName()
     {
         return $this->name;
     }
@@ -66,7 +66,7 @@ class AttributeMetadata implements AttributeMetadataInterface
     /**
      * {@inheritdoc}
      */
-    public function addGroup(string $group)
+    public function addGroup($group)
     {
         if (!\in_array($group, $this->groups)) {
             $this->groups[] = $group;
@@ -76,7 +76,7 @@ class AttributeMetadata implements AttributeMetadataInterface
     /**
      * {@inheritdoc}
      */
-    public function getGroups(): array
+    public function getGroups()
     {
         return $this->groups;
     }
@@ -84,7 +84,7 @@ class AttributeMetadata implements AttributeMetadataInterface
     /**
      * {@inheritdoc}
      */
-    public function setMaxDepth(?int $maxDepth)
+    public function setMaxDepth($maxDepth)
     {
         $this->maxDepth = $maxDepth;
     }

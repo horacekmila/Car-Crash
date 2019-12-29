@@ -33,7 +33,7 @@ class CreateRootCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->userService->createUser(self::USER_NAME, $input->getArgument('Password'));
+        $this->userService->createUser(self::USER_NAME, $input->getArgument('Password'), true);
         return 0;
     }
 }

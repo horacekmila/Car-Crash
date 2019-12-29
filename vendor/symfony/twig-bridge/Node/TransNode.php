@@ -19,10 +19,13 @@ use Twig\Node\Expression\NameExpression;
 use Twig\Node\Node;
 use Twig\Node\TextNode;
 
+// BC/FC with namespaced Twig
+class_exists('Twig\Node\Expression\ArrayExpression');
+
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class TransNode extends Node
+class TransNode extends Node
 {
     public function __construct(Node $body, Node $domain = null, AbstractExpression $count = null, AbstractExpression $vars = null, AbstractExpression $locale = null, int $lineno = 0, string $tag = null)
     {
@@ -43,7 +46,7 @@ final class TransNode extends Node
         parent::__construct($nodes, [], $lineno, $tag);
     }
 
-    public function compile(Compiler $compiler): void
+    public function compile(Compiler $compiler)
     {
         $compiler->addDebugInfo($this);
 
@@ -53,6 +56,8 @@ final class TransNode extends Node
             $vars = null;
         }
         list($msg, $defaults) = $this->compileString($this->getNode('body'), $defaults, (bool) $vars);
+
+        $method = !$this->hasNode('count') ? 'trans' : 'transChoice';
 
         $compiler
             ->write('echo $this->env->getExtension(\'Symfony\Bridge\Twig\Extension\TranslationExtension\')->trans(')
@@ -100,7 +105,7 @@ final class TransNode extends Node
         $compiler->raw(");\n");
     }
 
-    private function compileString(Node $body, ArrayExpression $vars, bool $ignoreStrictCheck = false): array
+    protected function compileString(Node $body, ArrayExpression $vars, $ignoreStrictCheck = false)
     {
         if ($body instanceof ConstantExpression) {
             $msg = $body->getAttribute('value');

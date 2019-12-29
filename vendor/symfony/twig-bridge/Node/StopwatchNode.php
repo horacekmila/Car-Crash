@@ -20,14 +20,14 @@ use Twig\Node\Node;
  *
  * @author Wouter J <wouter@wouterj.nl>
  */
-final class StopwatchNode extends Node
+class StopwatchNode extends Node
 {
     public function __construct(Node $name, Node $body, AssignNameExpression $var, int $lineno = 0, string $tag = null)
     {
         parent::__construct(['body' => $body, 'name' => $name, 'var' => $var], [], $lineno, $tag);
     }
 
-    public function compile(Compiler $compiler): void
+    public function compile(Compiler $compiler)
     {
         $compiler
             ->addDebugInfo($this)

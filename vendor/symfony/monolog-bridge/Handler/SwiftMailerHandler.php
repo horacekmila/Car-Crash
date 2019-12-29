@@ -13,14 +13,12 @@ namespace Symfony\Bridge\Monolog\Handler;
 
 use Monolog\Handler\SwiftMailerHandler as BaseSwiftMailerHandler;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 
 /**
  * Extended SwiftMailerHandler that flushes mail queue if necessary.
  *
  * @author Philipp Kräutli <pkraeutli@astina.ch>
- *
- * @final
  */
 class SwiftMailerHandler extends BaseSwiftMailerHandler
 {
@@ -36,7 +34,7 @@ class SwiftMailerHandler extends BaseSwiftMailerHandler
     /**
      * After the kernel has been terminated we will always flush messages.
      */
-    public function onKernelTerminate(TerminateEvent $event)
+    public function onKernelTerminate(PostResponseEvent $event)
     {
         $this->instantFlush = true;
     }
@@ -52,7 +50,7 @@ class SwiftMailerHandler extends BaseSwiftMailerHandler
     /**
      * {@inheritdoc}
      */
-    protected function send($content, array $records): void
+    protected function send($content, array $records)
     {
         parent::send($content, $records);
 
@@ -64,7 +62,7 @@ class SwiftMailerHandler extends BaseSwiftMailerHandler
     /**
      * {@inheritdoc}
      */
-    public function reset(): void
+    public function reset()
     {
         $this->flushMemorySpool();
     }

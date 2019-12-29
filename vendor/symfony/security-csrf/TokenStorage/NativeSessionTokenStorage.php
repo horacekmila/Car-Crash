@@ -41,7 +41,7 @@ class NativeSessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function getToken(string $tokenId)
+    public function getToken($tokenId)
     {
         if (!$this->sessionStarted) {
             $this->startSession();
@@ -57,19 +57,19 @@ class NativeSessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setToken(string $tokenId, string $token)
+    public function setToken($tokenId, $token)
     {
         if (!$this->sessionStarted) {
             $this->startSession();
         }
 
-        $_SESSION[$this->namespace][$tokenId] = $token;
+        $_SESSION[$this->namespace][$tokenId] = (string) $token;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasToken(string $tokenId)
+    public function hasToken($tokenId)
     {
         if (!$this->sessionStarted) {
             $this->startSession();
@@ -81,14 +81,14 @@ class NativeSessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function removeToken(string $tokenId)
+    public function removeToken($tokenId)
     {
         if (!$this->sessionStarted) {
             $this->startSession();
         }
 
         if (!isset($_SESSION[$this->namespace][$tokenId])) {
-            return null;
+            return;
         }
 
         $token = (string) $_SESSION[$this->namespace][$tokenId];

@@ -11,12 +11,12 @@
 
 namespace Symfony\Component\Intl\NumberFormatter;
 
-use Symfony\Component\Intl\Currencies;
 use Symfony\Component\Intl\Exception\MethodArgumentNotImplementedException;
 use Symfony\Component\Intl\Exception\MethodArgumentValueNotImplementedException;
 use Symfony\Component\Intl\Exception\MethodNotImplementedException;
 use Symfony\Component\Intl\Exception\NotImplementedException;
 use Symfony\Component\Intl\Globals\IntlGlobals;
+use Symfony\Component\Intl\Intl;
 use Symfony\Component\Intl\Locale\Locale;
 
 /**
@@ -40,7 +40,7 @@ use Symfony\Component\Intl\Locale\Locale;
  *
  * @internal
  */
-abstract class NumberFormatter
+class NumberFormatter
 {
     /* Format style constants */
     const PATTERN_DECIMAL = 0;
@@ -198,7 +198,7 @@ abstract class NumberFormatter
      * The mapping between NumberFormatter rounding modes to the available
      * modes in PHP's round() function.
      *
-     * @see https://php.net/round
+     * @see http://www.php.net/manual/en/function.round.php
      */
     private static $phpRoundingMap = [
         self::ROUND_HALFDOWN => \PHP_ROUND_HALF_DOWN,
@@ -241,15 +241,15 @@ abstract class NumberFormatter
     ];
 
     /**
-     * @param string|null $locale  The locale code. The only currently supported locale is "en" (or null using the default locale, i.e. "en")
-     * @param int         $style   Style of the formatting, one of the format style constants.
-     *                             The only supported styles are NumberFormatter::DECIMAL
-     *                             and NumberFormatter::CURRENCY.
-     * @param string      $pattern Not supported. A pattern string in case $style is NumberFormat::PATTERN_DECIMAL or
-     *                             NumberFormat::PATTERN_RULEBASED. It must conform to  the syntax
-     *                             described in the ICU DecimalFormat or ICU RuleBasedNumberFormat documentation
+     * @param string $locale  The locale code. The only currently supported locale is "en" (or null using the default locale, i.e. "en")
+     * @param int    $style   Style of the formatting, one of the format style constants.
+     *                        The only supported styles are NumberFormatter::DECIMAL
+     *                        and NumberFormatter::CURRENCY.
+     * @param string $pattern Not supported. A pattern string in case $style is NumberFormat::PATTERN_DECIMAL or
+     *                        NumberFormat::PATTERN_RULEBASED. It must conform to  the syntax
+     *                        described in the ICU DecimalFormat or ICU RuleBasedNumberFormat documentation
      *
-     * @see https://php.net/numberformatter.create
+     * @see http://www.php.net/manual/en/numberformatter.create.php
      * @see http://www.icu-project.org/apiref/icu4c/classDecimalFormat.html#_details
      * @see http://www.icu-project.org/apiref/icu4c/classRuleBasedNumberFormat.html#_details
      *
@@ -257,7 +257,7 @@ abstract class NumberFormatter
      * @throws MethodArgumentValueNotImplementedException When the $style is not supported
      * @throws MethodArgumentNotImplementedException      When the pattern value is different than null
      */
-    public function __construct(?string $locale = 'en', int $style = null, string $pattern = null)
+    public function __construct(?string $locale = 'en', int $style = null, $pattern = null)
     {
         if ('en' !== $locale && null !== $locale) {
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'locale', $locale, 'Only the locale "en" is supported');
@@ -278,17 +278,17 @@ abstract class NumberFormatter
     /**
      * Static constructor.
      *
-     * @param string|null $locale  The locale code. The only supported locale is "en" (or null using the default locale, i.e. "en")
-     * @param int         $style   Style of the formatting, one of the format style constants.
-     *                             The only currently supported styles are NumberFormatter::DECIMAL
-     *                             and NumberFormatter::CURRENCY.
-     * @param string      $pattern Not supported. A pattern string in case $style is NumberFormat::PATTERN_DECIMAL or
-     *                             NumberFormat::PATTERN_RULEBASED. It must conform to  the syntax
-     *                             described in the ICU DecimalFormat or ICU RuleBasedNumberFormat documentation
+     * @param string $locale  The locale code. The only supported locale is "en" (or null using the default locale, i.e. "en")
+     * @param int    $style   Style of the formatting, one of the format style constants.
+     *                        The only currently supported styles are NumberFormatter::DECIMAL
+     *                        and NumberFormatter::CURRENCY.
+     * @param string $pattern Not supported. A pattern string in case $style is NumberFormat::PATTERN_DECIMAL or
+     *                        NumberFormat::PATTERN_RULEBASED. It must conform to  the syntax
+     *                        described in the ICU DecimalFormat or ICU RuleBasedNumberFormat documentation
      *
-     * @return static
+     * @return self
      *
-     * @see https://php.net/numberformatter.create
+     * @see http://www.php.net/manual/en/numberformatter.create.php
      * @see http://www.icu-project.org/apiref/icu4c/classDecimalFormat.html#_details
      * @see http://www.icu-project.org/apiref/icu4c/classRuleBasedNumberFormat.html#_details
      *
@@ -296,29 +296,30 @@ abstract class NumberFormatter
      * @throws MethodArgumentValueNotImplementedException When the $style is not supported
      * @throws MethodArgumentNotImplementedException      When the pattern value is different than null
      */
-    public static function create(?string $locale = 'en', int $style = null, string $pattern = null)
+    public static function create($locale = 'en', $style = null, $pattern = null)
     {
-        return new static($locale, $style, $pattern);
+        return new self($locale, $style, $pattern);
     }
 
     /**
      * Format a currency value.
      *
+     * @param float  $value    The numeric currency value
      * @param string $currency The 3-letter ISO 4217 currency code indicating the currency to use
      *
      * @return string The formatted currency value
      *
-     * @see https://php.net/numberformatter.formatcurrency
+     * @see http://www.php.net/manual/en/numberformatter.formatcurrency.php
      * @see https://en.wikipedia.org/wiki/ISO_4217#Active_codes
      */
-    public function formatCurrency(float $value, string $currency)
+    public function formatCurrency($value, $currency)
     {
-        if (self::DECIMAL === $this->style) {
+        if (self::DECIMAL == $this->style) {
             return $this->format($value);
         }
 
-        $symbol = Currencies::getSymbol($currency, 'en');
-        $fractionDigits = Currencies::getFractionDigits($currency);
+        $symbol = Intl::getCurrencyBundle()->getCurrencySymbol($currency, 'en');
+        $fractionDigits = Intl::getCurrencyBundle()->getFractionDigits($currency);
 
         $value = $this->roundCurrency($value, $currency);
 
@@ -345,26 +346,26 @@ abstract class NumberFormatter
      *
      * @return bool|string The formatted value or false on error
      *
-     * @see https://php.net/numberformatter.format
+     * @see http://www.php.net/manual/en/numberformatter.format.php
      *
      * @throws NotImplementedException                    If the method is called with the class $style 'CURRENCY'
      * @throws MethodArgumentValueNotImplementedException If the $type is different than TYPE_DEFAULT
      */
-    public function format($value, int $type = self::TYPE_DEFAULT)
+    public function format($value, $type = self::TYPE_DEFAULT)
     {
         // The original NumberFormatter does not support this format type
-        if (self::TYPE_CURRENCY === $type) {
+        if (self::TYPE_CURRENCY == $type) {
             trigger_error(__METHOD__.'(): Unsupported format type '.$type, \E_USER_WARNING);
 
             return false;
         }
 
-        if (self::CURRENCY === $this->style) {
+        if (self::CURRENCY == $this->style) {
             throw new NotImplementedException(sprintf('%s() method does not support the formatting of currencies (instance with CURRENCY style). %s', __METHOD__, NotImplementedException::INTL_INSTALL_MESSAGE));
         }
 
         // Only the default type is supported.
-        if (self::TYPE_DEFAULT !== $type) {
+        if (self::TYPE_DEFAULT != $type) {
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'type', $type, 'Only TYPE_DEFAULT is supported');
         }
 
@@ -384,11 +385,11 @@ abstract class NumberFormatter
      *
      * @param int $attr An attribute specifier, one of the numeric attribute constants
      *
-     * @return int|false The attribute value on success or false on error
+     * @return bool|int The attribute value on success or false on error
      *
-     * @see https://php.net/numberformatter.getattribute
+     * @see http://www.php.net/manual/en/numberformatter.getattribute.php
      */
-    public function getAttribute(int $attr)
+    public function getAttribute($attr)
     {
         return isset($this->attributes[$attr]) ? $this->attributes[$attr] : null;
     }
@@ -398,7 +399,7 @@ abstract class NumberFormatter
      *
      * @return int The error code from last formatter call
      *
-     * @see https://php.net/numberformatter.geterrorcode
+     * @see http://www.php.net/manual/en/numberformatter.geterrorcode.php
      */
     public function getErrorCode()
     {
@@ -410,7 +411,7 @@ abstract class NumberFormatter
      *
      * @return string The error message from last formatter call
      *
-     * @see https://php.net/numberformatter.geterrormessage
+     * @see http://www.php.net/manual/en/numberformatter.geterrormessage.php
      */
     public function getErrorMessage()
     {
@@ -427,9 +428,9 @@ abstract class NumberFormatter
      * @return string The locale used to create the formatter. Currently always
      *                returns "en".
      *
-     * @see https://php.net/numberformatter.getlocale
+     * @see http://www.php.net/manual/en/numberformatter.getlocale.php
      */
-    public function getLocale(int $type = Locale::ACTUAL_LOCALE)
+    public function getLocale($type = Locale::ACTUAL_LOCALE)
     {
         return 'en';
     }
@@ -437,9 +438,9 @@ abstract class NumberFormatter
     /**
      * Not supported. Returns the formatter's pattern.
      *
-     * @return string|false The pattern string used by the formatter or false on error
+     * @return bool|string The pattern string used by the formatter or false on error
      *
-     * @see https://php.net/numberformatter.getpattern
+     * @see http://www.php.net/manual/en/numberformatter.getpattern.php
      *
      * @throws MethodNotImplementedException
      */
@@ -453,11 +454,11 @@ abstract class NumberFormatter
      *
      * @param int $attr A symbol specifier, one of the format symbol constants
      *
-     * @return string|false The symbol value or false on error
+     * @return bool|string The symbol value or false on error
      *
-     * @see https://php.net/numberformatter.getsymbol
+     * @see http://www.php.net/manual/en/numberformatter.getsymbol.php
      */
-    public function getSymbol(int $attr)
+    public function getSymbol($attr)
     {
         return \array_key_exists($this->style, self::$enSymbols) && \array_key_exists($attr, self::$enSymbols[$this->style]) ? self::$enSymbols[$this->style][$attr] : false;
     }
@@ -467,11 +468,11 @@ abstract class NumberFormatter
      *
      * @param int $attr An attribute specifier, one of the text attribute constants
      *
-     * @return string|false The attribute value or false on error
+     * @return bool|string The attribute value or false on error
      *
-     * @see https://php.net/numberformatter.gettextattribute
+     * @see http://www.php.net/manual/en/numberformatter.gettextattribute.php
      */
-    public function getTextAttribute(int $attr)
+    public function getTextAttribute($attr)
     {
         return \array_key_exists($this->style, self::$enTextAttributes) && \array_key_exists($attr, self::$enTextAttributes[$this->style]) ? self::$enTextAttributes[$this->style][$attr] : false;
     }
@@ -483,13 +484,13 @@ abstract class NumberFormatter
      * @param string $currency Parameter to receive the currency name (reference)
      * @param int    $position Offset to begin the parsing on return this value will hold the offset at which the parsing ended
      *
-     * @return float|false The parsed numeric value or false on error
+     * @return bool|string The parsed numeric value or false on error
      *
-     * @see https://php.net/numberformatter.parsecurrency
+     * @see http://www.php.net/manual/en/numberformatter.parsecurrency.php
      *
      * @throws MethodNotImplementedException
      */
-    public function parseCurrency(string $value, string &$currency, int &$position = null)
+    public function parseCurrency($value, &$currency, &$position = null)
     {
         throw new MethodNotImplementedException(__METHOD__);
     }
@@ -503,11 +504,11 @@ abstract class NumberFormatter
      *
      * @return int|float|false The parsed value or false on error
      *
-     * @see https://php.net/numberformatter.parse
+     * @see http://www.php.net/manual/en/numberformatter.parse.php
      */
-    public function parse(string $value, int $type = self::TYPE_DOUBLE, int &$position = 0)
+    public function parse($value, $type = self::TYPE_DOUBLE, &$position = 0)
     {
-        if (self::TYPE_DEFAULT === $type || self::TYPE_CURRENCY === $type) {
+        if (self::TYPE_DEFAULT == $type || self::TYPE_CURRENCY == $type) {
             trigger_error(__METHOD__.'(): Unsupported format type '.$type, \E_USER_WARNING);
 
             return false;
@@ -550,18 +551,19 @@ abstract class NumberFormatter
     /**
      * Set an attribute.
      *
-     * @param int $attr An attribute specifier, one of the numeric attribute constants.
-     *                  The only currently supported attributes are NumberFormatter::FRACTION_DIGITS,
-     *                  NumberFormatter::GROUPING_USED and NumberFormatter::ROUNDING_MODE.
+     * @param int $attr  An attribute specifier, one of the numeric attribute constants.
+     *                   The only currently supported attributes are NumberFormatter::FRACTION_DIGITS,
+     *                   NumberFormatter::GROUPING_USED and NumberFormatter::ROUNDING_MODE.
+     * @param int $value The attribute value
      *
      * @return bool true on success or false on failure
      *
-     * @see https://php.net/numberformatter.setattribute
+     * @see http://www.php.net/manual/en/numberformatter.setattribute.php
      *
      * @throws MethodArgumentValueNotImplementedException When the $attr is not supported
      * @throws MethodArgumentValueNotImplementedException When the $value is not supported
      */
-    public function setAttribute(int $attr, int $value)
+    public function setAttribute($attr, $value)
     {
         if (!\in_array($attr, self::$supportedAttributes)) {
             $message = sprintf(
@@ -572,7 +574,7 @@ abstract class NumberFormatter
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'attr', $value, $message);
         }
 
-        if (self::$supportedAttributes['ROUNDING_MODE'] === $attr && $this->isInvalidRoundingMode($value)) {
+        if (self::$supportedAttributes['ROUNDING_MODE'] == $attr && $this->isInvalidRoundingMode($value)) {
             $message = sprintf(
                 'The supported values for ROUNDING_MODE are: %s',
                 implode(', ', array_keys(self::$roundingModes))
@@ -581,11 +583,11 @@ abstract class NumberFormatter
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'attr', $value, $message);
         }
 
-        if (self::$supportedAttributes['GROUPING_USED'] === $attr) {
+        if (self::$supportedAttributes['GROUPING_USED'] == $attr) {
             $value = $this->normalizeGroupingUsedValue($value);
         }
 
-        if (self::$supportedAttributes['FRACTION_DIGITS'] === $attr) {
+        if (self::$supportedAttributes['FRACTION_DIGITS'] == $attr) {
             $value = $this->normalizeFractionDigitsValue($value);
             if ($value < 0) {
                 // ignore negative values but do not raise an error
@@ -606,12 +608,12 @@ abstract class NumberFormatter
      *
      * @return bool true on success or false on failure
      *
-     * @see https://php.net/numberformatter.setpattern
+     * @see http://www.php.net/manual/en/numberformatter.setpattern.php
      * @see http://www.icu-project.org/apiref/icu4c/classDecimalFormat.html#_details
      *
      * @throws MethodNotImplementedException
      */
-    public function setPattern(string $pattern)
+    public function setPattern($pattern)
     {
         throw new MethodNotImplementedException(__METHOD__);
     }
@@ -624,11 +626,11 @@ abstract class NumberFormatter
      *
      * @return bool true on success or false on failure
      *
-     * @see https://php.net/numberformatter.setsymbol
+     * @see http://www.php.net/manual/en/numberformatter.setsymbol.php
      *
      * @throws MethodNotImplementedException
      */
-    public function setSymbol(int $attr, string $value)
+    public function setSymbol($attr, $value)
     {
         throw new MethodNotImplementedException(__METHOD__);
     }
@@ -641,11 +643,11 @@ abstract class NumberFormatter
      *
      * @return bool true on success or false on failure
      *
-     * @see https://php.net/numberformatter.settextattribute
+     * @see http://www.php.net/manual/en/numberformatter.settextattribute.php
      *
      * @throws MethodNotImplementedException
      */
-    public function setTextAttribute(int $attr, string $value)
+    public function setTextAttribute($attr, $value)
     {
         throw new MethodNotImplementedException(__METHOD__);
     }
@@ -670,13 +672,18 @@ abstract class NumberFormatter
      *
      * The only actual rounding data as of this writing, is CHF.
      *
+     * @param float  $value    The numeric currency value
+     * @param string $currency The 3-letter ISO 4217 currency code indicating the currency to use
+     *
+     * @return float The rounded numeric currency value
+     *
      * @see http://en.wikipedia.org/wiki/Swedish_rounding
      * @see http://www.docjar.com/html/api/com/ibm/icu/util/Currency.java.html#1007
      */
-    private function roundCurrency(float $value, string $currency): float
+    private function roundCurrency($value, $currency)
     {
-        $fractionDigits = Currencies::getFractionDigits($currency);
-        $roundingIncrement = Currencies::getRoundingIncrement($currency);
+        $fractionDigits = Intl::getCurrencyBundle()->getFractionDigits($currency);
+        $roundingIncrement = Intl::getCurrencyBundle()->getRoundingIncrement($currency);
 
         // Round with the formatter rounding mode
         $value = $this->round($value, $fractionDigits);
@@ -693,11 +700,12 @@ abstract class NumberFormatter
     /**
      * Rounds a value.
      *
-     * @param int|float $value The value to round
+     * @param int|float $value     The value to round
+     * @param int       $precision The number of decimal digits to round to
      *
      * @return int|float The rounded value
      */
-    private function round($value, int $precision)
+    private function round($value, $precision)
     {
         $precision = $this->getUninitializedPrecision($value, $precision);
 
@@ -733,9 +741,12 @@ abstract class NumberFormatter
     /**
      * Formats a number.
      *
-     * @param int|float $value The numeric value to format
+     * @param int|float $value     The numeric value to format
+     * @param int       $precision The number of decimal digits to use
+     *
+     * @return string The formatted number
      */
-    private function formatNumber($value, int $precision): string
+    private function formatNumber($value, $precision)
     {
         $precision = $this->getUninitializedPrecision($value, $precision);
 
@@ -745,11 +756,14 @@ abstract class NumberFormatter
     /**
      * Returns the precision value if the DECIMAL style is being used and the FRACTION_DIGITS attribute is uninitialized.
      *
-     * @param int|float $value The value to get the precision from if the FRACTION_DIGITS attribute is uninitialized
+     * @param int|float $value     The value to get the precision from if the FRACTION_DIGITS attribute is uninitialized
+     * @param int       $precision The precision value to returns if the FRACTION_DIGITS attribute is initialized
+     *
+     * @return int The precision value
      */
-    private function getUninitializedPrecision($value, int $precision): int
+    private function getUninitializedPrecision($value, $precision)
     {
-        if (self::CURRENCY === $this->style) {
+        if (self::CURRENCY == $this->style) {
             return $precision;
         }
 
@@ -765,8 +779,12 @@ abstract class NumberFormatter
 
     /**
      * Check if the attribute is initialized (value set by client code).
+     *
+     * @param string $attr The attribute name
+     *
+     * @return bool true if the value was set by client, false otherwise
      */
-    private function isInitializedAttribute(string $attr): bool
+    private function isInitializedAttribute($attr)
     {
         return isset($this->initializedAttributes[$attr]);
     }
@@ -775,16 +793,17 @@ abstract class NumberFormatter
      * Returns the numeric value using the $type to convert to the right data type.
      *
      * @param mixed $value The value to be converted
+     * @param int   $type  The type to convert. Can be TYPE_DOUBLE (float) or TYPE_INT32 (int)
      *
      * @return int|float|false The converted value
      */
-    private function convertValueDataType($value, int $type)
+    private function convertValueDataType($value, $type)
     {
-        if (self::TYPE_DOUBLE === $type) {
+        if (self::TYPE_DOUBLE == $type) {
             $value = (float) $value;
-        } elseif (self::TYPE_INT32 === $type) {
+        } elseif (self::TYPE_INT32 == $type) {
             $value = $this->getInt32Value($value);
-        } elseif (self::TYPE_INT64 === $type) {
+        } elseif (self::TYPE_INT64 == $type) {
             $value = $this->getInt64Value($value);
         }
 
@@ -793,6 +812,8 @@ abstract class NumberFormatter
 
     /**
      * Convert the value data type to int or returns false if the value is out of the integer value range.
+     *
+     * @param mixed $value The value to be converted
      *
      * @return int|false The converted value
      */
@@ -807,6 +828,8 @@ abstract class NumberFormatter
 
     /**
      * Convert the value data type to int or returns false if the value is out of the integer value range.
+     *
+     * @param mixed $value The value to be converted
      *
      * @return int|float|false The converted value
      */
@@ -825,8 +848,12 @@ abstract class NumberFormatter
 
     /**
      * Check if the rounding mode is invalid.
+     *
+     * @param int $value The rounding mode value to check
+     *
+     * @return bool true if the rounding mode is invalid, false otherwise
      */
-    private function isInvalidRoundingMode(int $value): bool
+    private function isInvalidRoundingMode($value)
     {
         if (\in_array($value, self::$roundingModes, true)) {
             return false;
@@ -838,16 +865,24 @@ abstract class NumberFormatter
     /**
      * Returns the normalized value for the GROUPING_USED attribute. Any value that can be converted to int will be
      * cast to Boolean and then to int again. This way, negative values are converted to 1 and string values to 0.
+     *
+     * @param mixed $value The value to be normalized
+     *
+     * @return int The normalized value for the attribute (0 or 1)
      */
-    private function normalizeGroupingUsedValue($value): int
+    private function normalizeGroupingUsedValue($value)
     {
         return (int) (bool) (int) $value;
     }
 
     /**
      * Returns the normalized value for the FRACTION_DIGITS attribute.
+     *
+     * @param mixed $value The value to be normalized
+     *
+     * @return int The normalized value for the attribute
      */
-    private function normalizeFractionDigitsValue($value): int
+    private function normalizeFractionDigitsValue($value)
     {
         return (int) $value;
     }

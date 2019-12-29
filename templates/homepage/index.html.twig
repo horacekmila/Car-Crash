@@ -7,10 +7,10 @@
 {% block body %}
 
         <h1>
+            Vaše auta
             <a href="{{ path('car_add') }}">
                 <button>Přidat</button>
             </a>
-            Vaše auta
         </h1>
         <table>
             <tr>
@@ -19,6 +19,9 @@
                 </th>
                 <th>
                     Typ
+                </th>
+                <th>
+                    Počet nehod
                 </th>
                 <th>
                     Akce
@@ -33,11 +36,17 @@
                         {{ car.type }}
                     </td>
                     <td>
+                        {{ car.crashes|length }}
+                    </td>
+                    <td>
                         <a href="{{ path('car_detail', {'id': car.id}) }}">
                             <button>Zobrazit</button>
                         </a>
                         <a href="{{ path('car_delete', {'id': car.id}) }}">
                             <button>Smazat</button>
+                        </a>
+                        <a href="{{ path('crash_add', {'car_id': car.id}) }}">
+                            <button>Přidat nehodu</button>
                         </a>
                     </td>
                 </tr>

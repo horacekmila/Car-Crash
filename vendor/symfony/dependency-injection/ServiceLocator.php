@@ -12,19 +12,19 @@
 namespace Symfony\Component\DependencyInjection;
 
 use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Contracts\Service\ServiceLocatorTrait;
-use Symfony\Contracts\Service\ServiceProviderInterface;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 /**
  * @author Robin Chalas <robin.chalas@gmail.com>
  * @author Nicolas Grekas <p@tchwork.com>
  */
-class ServiceLocator implements ServiceProviderInterface
+class ServiceLocator implements PsrContainerInterface
 {
     use ServiceLocatorTrait {
         get as private doGet;
@@ -57,17 +57,15 @@ class ServiceLocator implements ServiceProviderInterface
         }
     }
 
-    public function __invoke(string $id)
+    public function __invoke($id)
     {
         return isset($this->factories[$id]) ? $this->get($id) : null;
     }
 
     /**
      * @internal
-     *
-     * @return static
      */
-    public function withContext(string $externalId, Container $container): self
+    public function withContext($externalId, Container $container)
     {
         $locator = clone $this;
         $locator->externalId = $externalId;
@@ -129,7 +127,7 @@ class ServiceLocator implements ServiceProviderInterface
         return new ServiceCircularReferenceException($id, $path);
     }
 
-    private function formatAlternatives(array $alternatives = null, string $separator = 'and'): string
+    private function formatAlternatives(array $alternatives = null, $separator = 'and')
     {
         $format = '"%s"%s';
         if (null === $alternatives) {

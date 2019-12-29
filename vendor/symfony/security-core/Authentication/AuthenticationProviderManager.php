@@ -11,15 +11,15 @@
 
 namespace Symfony\Component\Security\Core\Authentication;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\AuthenticationEvents;
+use Symfony\Component\Security\Core\Event\AuthenticationEvent;
 use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent;
-use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\ProviderNotFoundException;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * AuthenticationProviderManager uses a list of AuthenticationProviderInterface
@@ -93,7 +93,7 @@ class AuthenticationProviderManager implements AuthenticationManagerInterface
             }
 
             if (null !== $this->eventDispatcher) {
-                $this->eventDispatcher->dispatch(new AuthenticationSuccessEvent($result), AuthenticationEvents::AUTHENTICATION_SUCCESS);
+                $this->eventDispatcher->dispatch(AuthenticationEvents::AUTHENTICATION_SUCCESS, new AuthenticationEvent($result));
             }
 
             return $result;
@@ -104,7 +104,7 @@ class AuthenticationProviderManager implements AuthenticationManagerInterface
         }
 
         if (null !== $this->eventDispatcher) {
-            $this->eventDispatcher->dispatch(new AuthenticationFailureEvent($token, $lastException), AuthenticationEvents::AUTHENTICATION_FAILURE);
+            $this->eventDispatcher->dispatch(AuthenticationEvents::AUTHENTICATION_FAILURE, new AuthenticationFailureEvent($token, $lastException));
         }
 
         $lastException->setToken($token);

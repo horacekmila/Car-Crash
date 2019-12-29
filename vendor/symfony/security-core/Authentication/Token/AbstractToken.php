@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Token;
 
+use Symfony\Component\Security\Core\Role\Role;
+use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -23,28 +25,34 @@ use Symfony\Component\Security\Core\User\UserInterface;
 abstract class AbstractToken implements TokenInterface
 {
     private $user;
-    private $roleNames = [];
+    private $roles = [];
     private $authenticated = false;
     private $attributes = [];
 
     /**
-     * @param string[] $roles An array of roles
+     * @param (Role|string)[] $roles An array of roles
      *
      * @throws \InvalidArgumentException
      */
     public function __construct(array $roles = [])
     {
         foreach ($roles as $role) {
-            $this->roleNames[] = $role;
+            if (\is_string($role)) {
+                $role = new Role($role);
+            } elseif (!$role instanceof Role) {
+                throw new \InvalidArgumentException(sprintf('$roles must be an array of strings, or Role instances, but got %s.', \gettype($role)));
+            }
+
+            $this->roles[] = $role;
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getRoleNames(): array
+    public function getRoles()
     {
-        return $this->roleNames;
+        return $this->roles;
     }
 
     /**
@@ -108,9 +116,9 @@ abstract class AbstractToken implements TokenInterface
     /**
      * {@inheritdoc}
      */
-    public function setAuthenticated(bool $authenticated)
+    public function setAuthenticated($authenticated)
     {
-        $this->authenticated = $authenticated;
+        $this->authenticated = (bool) $authenticated;
     }
 
     /**
@@ -124,44 +132,21 @@ abstract class AbstractToken implements TokenInterface
     }
 
     /**
-     * Returns all the necessary state of the object for serialization purposes.
-     *
-     * There is no need to serialize any entry, they should be returned as-is.
-     * If you extend this method, keep in mind you MUST guarantee parent data is present in the state.
-     * Here is an example of how to extend this method:
-     * <code>
-     *     public function __serialize(): array
-     *     {
-     *         return [$this->childAttribute, parent::__serialize()];
-     *     }
-     * </code>
-     *
-     * @see __unserialize()
+     * {@inheritdoc}
      */
-    public function __serialize(): array
+    public function serialize()
     {
-        return [$this->user, $this->authenticated, null, $this->attributes, $this->roleNames];
+        $serialized = [$this->user, $this->authenticated, $this->roles, $this->attributes];
+
+        return $this->doSerialize($serialized, \func_num_args() ? func_get_arg(0) : null);
     }
 
     /**
-     * Restores the object state from an array given by __serialize().
-     *
-     * There is no need to unserialize any entry in $data, they are already ready-to-use.
-     * If you extend this method, keep in mind you MUST pass the parent data to its respective class.
-     * Here is an example of how to extend this method:
-     * <code>
-     *     public function __unserialize(array $data): void
-     *     {
-     *         [$this->childAttribute, $parentData] = $data;
-     *         parent::__unserialize($parentData);
-     *     }
-     * </code>
-     *
-     * @see __serialize()
+     * {@inheritdoc}
      */
-    public function __unserialize(array $data): void
+    public function unserialize($serialized)
     {
-        [$this->user, $this->authenticated, , $this->attributes, $this->roleNames] = $data;
+        list($this->user, $this->authenticated, $this->roles, $this->attributes) = \is_array($serialized) ? $serialized : unserialize($serialized);
     }
 
     /**
@@ -187,9 +172,11 @@ abstract class AbstractToken implements TokenInterface
     /**
      * Returns true if the attribute exists.
      *
+     * @param string $name The attribute name
+     *
      * @return bool true if the attribute exists, false otherwise
      */
-    public function hasAttribute(string $name)
+    public function hasAttribute($name)
     {
         return \array_key_exists($name, $this->attributes);
     }
@@ -197,11 +184,13 @@ abstract class AbstractToken implements TokenInterface
     /**
      * Returns an attribute value.
      *
+     * @param string $name The attribute name
+     *
      * @return mixed The attribute value
      *
      * @throws \InvalidArgumentException When attribute doesn't exist for this token
      */
-    public function getAttribute(string $name)
+    public function getAttribute($name)
     {
         if (!\array_key_exists($name, $this->attributes)) {
             throw new \InvalidArgumentException(sprintf('This token has no "%s" attribute.', $name));
@@ -213,9 +202,10 @@ abstract class AbstractToken implements TokenInterface
     /**
      * Sets an attribute.
      *
-     * @param mixed $value The attribute value
+     * @param string $name  The attribute name
+     * @param mixed  $value The attribute value
      */
-    public function setAttribute(string $name, $value)
+    public function setAttribute($name, $value)
     {
         $this->attributes[$name] = $value;
     }
@@ -229,8 +219,8 @@ abstract class AbstractToken implements TokenInterface
         $class = substr($class, strrpos($class, '\\') + 1);
 
         $roles = [];
-        foreach ($this->roleNames as $role) {
-            $roles[] = $role;
+        foreach ($this->roles as $role) {
+            $roles[] = $role->getRole();
         }
 
         return sprintf('%s(user="%s", authenticated=%s, roles="%s")', $class, $this->getUsername(), json_encode($this->authenticated), implode(', ', $roles));
@@ -239,20 +229,17 @@ abstract class AbstractToken implements TokenInterface
     /**
      * @internal
      */
-    final public function serialize(): string
+    protected function doSerialize($serialized, $isCalledFromOverridingMethod)
     {
-        return serialize($this->__serialize());
+        if (null === $isCalledFromOverridingMethod) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
+            $isCalledFromOverridingMethod = isset($trace[2]['function'], $trace[2]['object']) && 'serialize' === $trace[2]['function'] && $this === $trace[2]['object'];
+        }
+
+        return $isCalledFromOverridingMethod ? $serialized : serialize($serialized);
     }
 
-    /**
-     * @internal
-     */
-    final public function unserialize($serialized)
-    {
-        $this->__unserialize(\is_array($serialized) ? $serialized : unserialize($serialized));
-    }
-
-    private function hasUserChanged(UserInterface $user): bool
+    private function hasUserChanged(UserInterface $user)
     {
         if (!($this->user instanceof UserInterface)) {
             throw new \BadMethodCallException('Method "hasUserChanged" should be called when current user class is instance of "UserInterface".');
@@ -270,17 +257,30 @@ abstract class AbstractToken implements TokenInterface
             return true;
         }
 
-        $userRoles = array_map('strval', (array) $user->getRoles());
-
-        if ($this instanceof SwitchUserToken) {
-            $userRoles[] = 'ROLE_PREVIOUS_ADMIN';
-        }
-
-        if (\count($userRoles) !== \count($this->getRoleNames()) || \count($userRoles) !== \count(array_intersect($userRoles, $this->getRoleNames()))) {
+        if ($this->user->getUsername() !== $user->getUsername()) {
             return true;
         }
 
-        if ($this->user->getUsername() !== $user->getUsername()) {
+        if ($this->user instanceof AdvancedUserInterface && $user instanceof AdvancedUserInterface) {
+            @trigger_error(sprintf('Checking for the AdvancedUserInterface in "%s()" is deprecated since Symfony 4.1 and support for it will be removed in 5.0. Implement the %s to check if the user has been changed,', __METHOD__, EquatableInterface::class), E_USER_DEPRECATED);
+            if ($this->user->isAccountNonExpired() !== $user->isAccountNonExpired()) {
+                return true;
+            }
+
+            if ($this->user->isAccountNonLocked() !== $user->isAccountNonLocked()) {
+                return true;
+            }
+
+            if ($this->user->isCredentialsNonExpired() !== $user->isCredentialsNonExpired()) {
+                return true;
+            }
+
+            if ($this->user->isEnabled() !== $user->isEnabled()) {
+                return true;
+            }
+        } elseif ($this->user instanceof AdvancedUserInterface xor $user instanceof AdvancedUserInterface) {
+            @trigger_error(sprintf('Checking for the AdvancedUserInterface in "%s()" is deprecated since Symfony 4.1 and support for it will be removed in 5.0. Implement the %s to check if the user has been changed,', __METHOD__, EquatableInterface::class), E_USER_DEPRECATED);
+
             return true;
         }
 

@@ -32,7 +32,8 @@ class SessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * Initializes the storage with a Session object and a session namespace.
      *
-     * @param string $namespace The namespace under which the token is stored in the session
+     * @param SessionInterface $session   The user session from which the session ID is returned
+     * @param string           $namespace The namespace under which the token is stored in the session
      */
     public function __construct(SessionInterface $session, string $namespace = self::SESSION_NAMESPACE)
     {
@@ -43,7 +44,7 @@ class SessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function getToken(string $tokenId)
+    public function getToken($tokenId)
     {
         if (!$this->session->isStarted()) {
             $this->session->start();
@@ -59,19 +60,19 @@ class SessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setToken(string $tokenId, string $token)
+    public function setToken($tokenId, $token)
     {
         if (!$this->session->isStarted()) {
             $this->session->start();
         }
 
-        $this->session->set($this->namespace.'/'.$tokenId, $token);
+        $this->session->set($this->namespace.'/'.$tokenId, (string) $token);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function hasToken(string $tokenId)
+    public function hasToken($tokenId)
     {
         if (!$this->session->isStarted()) {
             $this->session->start();
@@ -83,7 +84,7 @@ class SessionTokenStorage implements ClearableTokenStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function removeToken(string $tokenId)
+    public function removeToken($tokenId)
     {
         if (!$this->session->isStarted()) {
             $this->session->start();

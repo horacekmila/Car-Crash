@@ -18,7 +18,7 @@ use Twig\Profiler\Profile;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class ProfilerExtension extends BaseProfilerExtension
+class ProfilerExtension extends BaseProfilerExtension
 {
     private $stopwatch;
     private $events;
@@ -31,7 +31,7 @@ final class ProfilerExtension extends BaseProfilerExtension
         $this->events = new \SplObjectStorage();
     }
 
-    public function enter(Profile $profile): void
+    public function enter(Profile $profile)
     {
         if ($this->stopwatch && $profile->isTemplate()) {
             $this->events[$profile] = $this->stopwatch->start($profile->getName(), 'template');
@@ -40,7 +40,7 @@ final class ProfilerExtension extends BaseProfilerExtension
         parent::enter($profile);
     }
 
-    public function leave(Profile $profile): void
+    public function leave(Profile $profile)
     {
         parent::leave($profile);
 
@@ -48,5 +48,13 @@ final class ProfilerExtension extends BaseProfilerExtension
             $this->events[$profile]->stop();
             unset($this->events[$profile]);
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return 'native_profiler';
     }
 }

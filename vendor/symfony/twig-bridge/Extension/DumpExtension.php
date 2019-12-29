@@ -24,7 +24,7 @@ use Twig\TwigFunction;
  *
  * @author Nicolas Grekas <p@tchwork.com>
  */
-final class DumpExtension extends AbstractExtension
+class DumpExtension extends AbstractExtension
 {
     private $cloner;
     private $dumper;
@@ -35,28 +35,27 @@ final class DumpExtension extends AbstractExtension
         $this->dumper = $dumper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFunctions(): array
+    public function getFunctions()
     {
         return [
             new TwigFunction('dump', [$this, 'dump'], ['is_safe' => ['html'], 'needs_context' => true, 'needs_environment' => true]),
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getTokenParsers(): array
+    public function getTokenParsers()
     {
         return [new DumpTokenParser()];
     }
 
-    public function dump(Environment $env, array $context): ?string
+    public function getName()
+    {
+        return 'dump';
+    }
+
+    public function dump(Environment $env, $context)
     {
         if (!$env->isDebug()) {
-            return null;
+            return;
         }
 
         if (2 === \func_num_args()) {

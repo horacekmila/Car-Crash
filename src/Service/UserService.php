@@ -24,12 +24,13 @@ class UserService
         $this->encoder = $encoder;
     }
 
-    public function createUser(string $username, string $plainPassword): User
+    public function createUser(string $username, string $plainPassword, bool $isAdmin): User
     {
         $user = new User();
         $user->setUsername($username);
         $password = $this->encoder->encodePassword($user, $plainPassword);
         $user->setPassword($password);
+        $user->setIsAdmin($isAdmin);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();

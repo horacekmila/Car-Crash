@@ -72,7 +72,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     /**
      * {@inheritdoc}
      */
-    public function get(int $offset)
+    public function get($offset)
     {
         if (!isset($this->violations[$offset])) {
             throw new \OutOfBoundsException(sprintf('The offset "%s" does not exist.', $offset));
@@ -84,7 +84,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     /**
      * {@inheritdoc}
      */
-    public function has(int $offset)
+    public function has($offset)
     {
         return isset($this->violations[$offset]);
     }
@@ -92,7 +92,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     /**
      * {@inheritdoc}
      */
-    public function set(int $offset, ConstraintViolationInterface $violation)
+    public function set($offset, ConstraintViolationInterface $violation)
     {
         $this->violations[$offset] = $violation;
     }
@@ -100,7 +100,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     /**
      * {@inheritdoc}
      */
-    public function remove(int $offset)
+    public function remove($offset)
     {
         unset($this->violations[$offset]);
     }
@@ -116,7 +116,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     }
 
     /**
-     * @return int
+     * {@inheritdoc}
      */
     public function count()
     {
@@ -124,7 +124,7 @@ class ConstraintViolationList implements \IteratorAggregate, ConstraintViolation
     }
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
     public function offsetExists($offset)
     {

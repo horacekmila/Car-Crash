@@ -26,9 +26,11 @@ final class DateTimeImmutableToDateTimeTransformer implements DataTransformerInt
      *
      * @param \DateTimeImmutable|null $value A DateTimeImmutable object
      *
+     * @return \DateTime|null A \DateTime object
+     *
      * @throws TransformationFailedException If the given value is not a \DateTimeImmutable
      */
-    public function transform($value): ?\DateTime
+    public function transform($value)
     {
         if (null === $value) {
             return null;
@@ -38,11 +40,7 @@ final class DateTimeImmutableToDateTimeTransformer implements DataTransformerInt
             throw new TransformationFailedException('Expected a \DateTimeImmutable.');
         }
 
-        if (\PHP_VERSION_ID >= 70300) {
-            return \DateTime::createFromImmutable($value);
-        }
-
-        return \DateTime::createFromFormat('U.u', $value->format('U.u'))->setTimezone($value->getTimezone());
+        return \DateTime::createFromFormat(\DateTime::RFC3339, $value->format(\DateTime::RFC3339));
     }
 
     /**
@@ -50,9 +48,11 @@ final class DateTimeImmutableToDateTimeTransformer implements DataTransformerInt
      *
      * @param \DateTime|null $value A DateTime object
      *
+     * @return \DateTimeImmutable|null A DateTimeImmutable object
+     *
      * @throws TransformationFailedException If the given value is not a \DateTime
      */
-    public function reverseTransform($value): ?\DateTimeImmutable
+    public function reverseTransform($value)
     {
         if (null === $value) {
             return null;

@@ -26,9 +26,9 @@ class DefinitionErrorExceptionPass extends AbstractRecursivePass
     /**
      * {@inheritdoc}
      */
-    protected function processValue($value, bool $isRoot = false)
+    protected function processValue($value, $isRoot = false)
     {
-        if (!$value instanceof Definition || !$value->hasErrors()) {
+        if (!$value instanceof Definition || empty($value->getErrors())) {
             return parent::processValue($value, $isRoot);
         }
 

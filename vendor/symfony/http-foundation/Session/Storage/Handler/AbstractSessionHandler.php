@@ -29,7 +29,7 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
     private $igbinaryEmptyData;
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
     public function open($savePath, $sessionName)
     {
@@ -42,22 +42,29 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
     }
 
     /**
+     * @param string $sessionId
+     *
      * @return string
      */
-    abstract protected function doRead(string $sessionId);
+    abstract protected function doRead($sessionId);
 
     /**
+     * @param string $sessionId
+     * @param string $data
+     *
      * @return bool
      */
-    abstract protected function doWrite(string $sessionId, string $data);
+    abstract protected function doWrite($sessionId, $data);
 
     /**
+     * @param string $sessionId
+     *
      * @return bool
      */
-    abstract protected function doDestroy(string $sessionId);
+    abstract protected function doDestroy($sessionId);
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
     public function validateId($sessionId)
     {
@@ -68,7 +75,7 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function read($sessionId)
     {
@@ -91,7 +98,7 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
     }
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
     public function write($sessionId, $data)
     {
@@ -108,7 +115,7 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
     }
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
     public function destroy($sessionId)
     {
@@ -117,15 +124,7 @@ abstract class AbstractSessionHandler implements \SessionHandlerInterface, \Sess
                 throw new \LogicException(sprintf('Session name cannot be empty, did you forget to call "parent::open()" in "%s"?.', \get_class($this)));
             }
             $cookie = SessionUtils::popSessionCookie($this->sessionName, $sessionId);
-
-            /*
-             * We send an invalidation Set-Cookie header (zero lifetime)
-             * when either the session was started or a cookie with
-             * the session name was sent by the client (in which case
-             * we know it's invalid as a valid session cookie would've
-             * started the session).
-             */
-            if (null === $cookie || isset($_COOKIE[$this->sessionName])) {
+            if (null === $cookie) {
                 if (\PHP_VERSION_ID < 70300) {
                     setcookie($this->sessionName, '', 0, ini_get('session.cookie_path'), ini_get('session.cookie_domain'), filter_var(ini_get('session.cookie_secure'), FILTER_VALIDATE_BOOLEAN), filter_var(ini_get('session.cookie_httponly'), FILTER_VALIDATE_BOOLEAN));
                 } else {

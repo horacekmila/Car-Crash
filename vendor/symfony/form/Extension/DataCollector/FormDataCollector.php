@@ -27,8 +27,6 @@ use Symfony\Component\VarDumper\Cloner\Stub;
  *
  * @author Robert Schönthal <robert.schoenthal@gmail.com>
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @final
  */
 class FormDataCollector extends DataCollector implements FormDataCollectorInterface
 {
@@ -81,7 +79,7 @@ class FormDataCollector extends DataCollector implements FormDataCollectorInterf
     /**
      * Does nothing. The data is collected during the form event listeners.
      */
-    public function collect(Request $request, Response $response, \Throwable $exception = null)
+    public function collect(Request $request, Response $response, \Exception $exception = null)
     {
     }
 
@@ -131,8 +129,7 @@ class FormDataCollector extends DataCollector implements FormDataCollectorInterf
         $hash = spl_object_hash($form);
 
         if (!isset($this->dataByForm[$hash])) {
-            // field was created by form event
-            $this->collectConfiguration($form);
+            $this->dataByForm[$hash] = [];
         }
 
         $this->dataByForm[$hash] = array_replace(
@@ -219,7 +216,7 @@ class FormDataCollector extends DataCollector implements FormDataCollectorInterf
     /**
      * {@inheritdoc}
      */
-    public function getName(): string
+    public function getName()
     {
         return 'form';
     }
@@ -232,10 +229,7 @@ class FormDataCollector extends DataCollector implements FormDataCollectorInterf
         return $this->data;
     }
 
-    /**
-     * @internal
-     */
-    public function __sleep(): array
+    public function serialize()
     {
         foreach ($this->data['forms_by_hash'] as &$form) {
             if (isset($form['type_class']) && !$form['type_class'] instanceof ClassStub) {
@@ -243,15 +237,13 @@ class FormDataCollector extends DataCollector implements FormDataCollectorInterf
             }
         }
 
-        $this->data = $this->cloneVar($this->data);
-
-        return parent::__sleep();
+        return serialize($this->cloneVar($this->data));
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getCasters(): array
+    protected function getCasters()
     {
         return parent::getCasters() + [
             \Exception::class => function (\Exception $e, array $a, Stub $s) {

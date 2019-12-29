@@ -6,4 +6,27 @@
     <h1>
         {{ car.licencePlate }} - {{ car.owner.username }}
     </h1>
+    <h2>
+        Nehody
+    </h2>
+        <table>
+            <tr>
+                <td>
+                   Den nehody
+                </td>
+                <td>
+                    Pokuta
+                </td>
+            </tr>
+        {% for crash in crashes %}
+            <tr>
+                <td>
+                    {{ crash.accidentAt|date("d.m.Y") }}
+                </td>
+                <td>
+                    {{ crash.fine }}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
 {% endblock %}

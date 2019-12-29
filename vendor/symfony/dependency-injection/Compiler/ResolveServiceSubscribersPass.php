@@ -14,7 +14,6 @@ namespace Symfony\Component\DependencyInjection\Compiler;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Contracts\Service\ServiceProviderInterface;
 
 /**
  * Compiler pass to inject their service locator to service subscribers.
@@ -25,9 +24,9 @@ class ResolveServiceSubscribersPass extends AbstractRecursivePass
 {
     private $serviceLocator;
 
-    protected function processValue($value, bool $isRoot = false)
+    protected function processValue($value, $isRoot = false)
     {
-        if ($value instanceof Reference && $this->serviceLocator && \in_array((string) $value, [ContainerInterface::class, ServiceProviderInterface::class], true)) {
+        if ($value instanceof Reference && $this->serviceLocator && ContainerInterface::class === (string) $value) {
             return new Reference($this->serviceLocator);
         }
 

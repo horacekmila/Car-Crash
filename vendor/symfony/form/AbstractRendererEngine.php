@@ -44,7 +44,7 @@ abstract class AbstractRendererEngine implements FormRendererEngineInterface
     /**
      * {@inheritdoc}
      */
-    public function setTheme(FormView $view, $themes, bool $useDefaultThemes = true)
+    public function setTheme(FormView $view, $themes, $useDefaultThemes = true)
     {
         $cacheKey = $view->vars[self::CACHE_KEY_VAR];
 
@@ -61,7 +61,7 @@ abstract class AbstractRendererEngine implements FormRendererEngineInterface
     /**
      * {@inheritdoc}
      */
-    public function getResourceForBlockName(FormView $view, string $blockName)
+    public function getResourceForBlockName(FormView $view, $blockName)
     {
         $cacheKey = $view->vars[self::CACHE_KEY_VAR];
 
@@ -75,7 +75,7 @@ abstract class AbstractRendererEngine implements FormRendererEngineInterface
     /**
      * {@inheritdoc}
      */
-    public function getResourceForBlockNameHierarchy(FormView $view, array $blockNameHierarchy, int $hierarchyLevel)
+    public function getResourceForBlockNameHierarchy(FormView $view, array $blockNameHierarchy, $hierarchyLevel)
     {
         $cacheKey = $view->vars[self::CACHE_KEY_VAR];
         $blockName = $blockNameHierarchy[$hierarchyLevel];
@@ -90,7 +90,7 @@ abstract class AbstractRendererEngine implements FormRendererEngineInterface
     /**
      * {@inheritdoc}
      */
-    public function getResourceHierarchyLevel(FormView $view, array $blockNameHierarchy, int $hierarchyLevel)
+    public function getResourceHierarchyLevel(FormView $view, array $blockNameHierarchy, $hierarchyLevel)
     {
         $cacheKey = $view->vars[self::CACHE_KEY_VAR];
         $blockName = $blockNameHierarchy[$hierarchyLevel];
@@ -114,16 +114,31 @@ abstract class AbstractRendererEngine implements FormRendererEngineInterface
      *
      * @see getResourceForBlock()
      *
+     * @param string   $cacheKey  The cache key of the form view
+     * @param FormView $view      The form view for finding the applying themes
+     * @param string   $blockName The name of the block to load
+     *
      * @return bool True if the resource could be loaded, false otherwise
      */
-    abstract protected function loadResourceForBlockName(string $cacheKey, FormView $view, string $blockName);
+    abstract protected function loadResourceForBlockName($cacheKey, FormView $view, $blockName);
 
     /**
      * Loads the cache with the resource for a specific level of a block hierarchy.
      *
      * @see getResourceForBlockHierarchy()
+     *
+     * @param string   $cacheKey           The cache key used for storing the
+     *                                     resource
+     * @param FormView $view               The form view for finding the applying
+     *                                     themes
+     * @param string[] $blockNameHierarchy The block hierarchy, with the most
+     *                                     specific block name at the end
+     * @param int      $hierarchyLevel     The level in the block hierarchy that
+     *                                     should be loaded
+     *
+     * @return bool True if the resource could be loaded, false otherwise
      */
-    private function loadResourceForBlockNameHierarchy(string $cacheKey, FormView $view, array $blockNameHierarchy, int $hierarchyLevel): bool
+    private function loadResourceForBlockNameHierarchy($cacheKey, FormView $view, array $blockNameHierarchy, $hierarchyLevel)
     {
         $blockName = $blockNameHierarchy[$hierarchyLevel];
 

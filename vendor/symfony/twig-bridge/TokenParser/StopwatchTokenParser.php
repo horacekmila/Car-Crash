@@ -13,7 +13,6 @@ namespace Symfony\Bridge\Twig\TokenParser;
 
 use Symfony\Bridge\Twig\Node\StopwatchNode;
 use Twig\Node\Expression\AssignNameExpression;
-use Twig\Node\Node;
 use Twig\Token;
 use Twig\TokenParser\AbstractTokenParser;
 
@@ -22,7 +21,7 @@ use Twig\TokenParser\AbstractTokenParser;
  *
  * @author Wouter J <wouter@wouterj.nl>
  */
-final class StopwatchTokenParser extends AbstractTokenParser
+class StopwatchTokenParser extends AbstractTokenParser
 {
     protected $stopwatchIsAvailable;
 
@@ -31,7 +30,7 @@ final class StopwatchTokenParser extends AbstractTokenParser
         $this->stopwatchIsAvailable = $stopwatchIsAvailable;
     }
 
-    public function parse(Token $token): Node
+    public function parse(Token $token)
     {
         $lineno = $token->getLine();
         $stream = $this->parser->getStream();
@@ -52,12 +51,12 @@ final class StopwatchTokenParser extends AbstractTokenParser
         return $body;
     }
 
-    public function decideStopwatchEnd(Token $token): bool
+    public function decideStopwatchEnd(Token $token)
     {
         return $token->test('endstopwatch');
     }
 
-    public function getTag(): string
+    public function getTag()
     {
         return 'stopwatch';
     }

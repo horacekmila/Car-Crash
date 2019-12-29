@@ -24,8 +24,6 @@ use Symfony\Component\VarDumper\Cloner\Stub;
 
 /**
  * @author Maxime Steinhausser <maxime.steinhausser@gmail.com>
- *
- * @final
  */
 class ValidatorDataCollector extends DataCollector implements LateDataCollectorInterface
 {
@@ -40,7 +38,7 @@ class ValidatorDataCollector extends DataCollector implements LateDataCollectorI
     /**
      * {@inheritdoc}
      */
-    public function collect(Request $request, Response $response, \Throwable $exception = null)
+    public function collect(Request $request, Response $response, \Exception $exception = null)
     {
         // Everything is collected once, on kernel terminate.
     }

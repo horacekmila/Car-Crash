@@ -113,7 +113,7 @@ class ChoiceFormField extends FormField
     /**
      * Sets the value of the field.
      *
-     * @param string|array|bool|null $value The value of the field
+     * @param string|array $value The value of the field
      *
      * @throws \InvalidArgumentException When value type provided is not correct
      */
@@ -154,6 +154,8 @@ class ChoiceFormField extends FormField
 
     /**
      * Adds a choice to the current ones.
+     *
+     * @param \DOMElement $node
      *
      * @throws \LogicException When choice provided is not multiple nor radio
      *
@@ -268,9 +270,12 @@ class ChoiceFormField extends FormField
     /**
      * Checks whether given value is in the existing options.
      *
+     * @param string $optionValue
+     * @param array  $options
+     *
      * @return bool
      */
-    public function containsOption(string $optionValue, array $options)
+    public function containsOption($optionValue, $options)
     {
         if ($this->validationDisabled) {
             return true;

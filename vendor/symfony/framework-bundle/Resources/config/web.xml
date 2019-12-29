@@ -7,9 +7,15 @@
     <services>
         <defaults public="false" />
 
+        <service id="controller_name_converter" class="Symfony\Bundle\FrameworkBundle\Controller\ControllerNameParser">
+            <tag name="monolog.logger" channel="request" />
+            <argument type="service" id="kernel" />
+        </service>
+
         <service id="controller_resolver" class="Symfony\Bundle\FrameworkBundle\Controller\ControllerResolver">
             <tag name="monolog.logger" channel="request" />
             <argument type="service" id="service_container" />
+            <argument type="service" id="controller_name_converter" />
             <argument type="service" id="logger" on-invalid="ignore" />
         </service>
 
@@ -65,22 +71,9 @@
             <tag name="kernel.event_subscriber" />
         </service>
 
-        <service id="disallow_search_engine_index_response_listener" class="Symfony\Component\HttpKernel\EventListener\DisallowRobotsIndexingListener">
+        <service id="resolve_controller_name_subscriber" class="Symfony\Bundle\FrameworkBundle\EventListener\ResolveControllerNameSubscriber">
+            <argument type="service" id="controller_name_converter" />
             <tag name="kernel.event_subscriber" />
-        </service>
-
-        <service id="error_controller" class="Symfony\Component\HttpKernel\Controller\ErrorController" public="true">
-            <argument type="service" id="http_kernel" />
-            <argument>%kernel.error_controller%</argument>
-            <argument type="service" id="error_renderer" />
-        </service>
-
-        <service id="exception_listener" class="Symfony\Component\HttpKernel\EventListener\ErrorListener">
-            <tag name="kernel.event_subscriber" />
-            <tag name="monolog.logger" channel="request" />
-            <argument>%kernel.error_controller%</argument>
-            <argument type="service" id="logger" on-invalid="null" />
-            <argument>%kernel.debug%</argument>
         </service>
     </services>
 </container>

@@ -30,7 +30,7 @@ class UserPasswordEncoder implements UserPasswordEncoderInterface
     /**
      * {@inheritdoc}
      */
-    public function encodePassword(UserInterface $user, string $plainPassword)
+    public function encodePassword(UserInterface $user, $plainPassword)
     {
         $encoder = $this->encoderFactory->getEncoder($user);
 
@@ -40,28 +40,10 @@ class UserPasswordEncoder implements UserPasswordEncoderInterface
     /**
      * {@inheritdoc}
      */
-    public function isPasswordValid(UserInterface $user, string $raw)
+    public function isPasswordValid(UserInterface $user, $raw)
     {
-        if (null === $user->getPassword()) {
-            return false;
-        }
-
         $encoder = $this->encoderFactory->getEncoder($user);
 
         return $encoder->isPasswordValid($user->getPassword(), $raw, $user->getSalt());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function needsRehash(UserInterface $user): bool
-    {
-        if (null === $user->getPassword()) {
-            return false;
-        }
-
-        $encoder = $this->encoderFactory->getEncoder($user);
-
-        return $encoder->needsRehash($user->getPassword());
     }
 }

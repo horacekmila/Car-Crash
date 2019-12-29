@@ -19,15 +19,16 @@ use Twig\Node\Expression\FunctionExpression;
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-final class SearchAndRenderBlockNode extends FunctionExpression
+class SearchAndRenderBlockNode extends FunctionExpression
 {
-    public function compile(Compiler $compiler): void
+    public function compile(Compiler $compiler)
     {
         $compiler->addDebugInfo($this);
         $compiler->raw('$this->env->getRuntime(\'Symfony\Component\Form\FormRenderer\')->searchAndRenderBlock(');
 
         preg_match('/_([^_]+)$/', $this->getAttribute('name'), $matches);
 
+        $label = null;
         $arguments = iterator_to_array($this->getNode('arguments'));
         $blockNameSuffix = $matches[1];
 

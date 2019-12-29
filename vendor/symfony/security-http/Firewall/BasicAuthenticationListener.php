@@ -13,7 +13,7 @@ namespace Symfony\Component\Security\Http\Firewall;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -26,10 +26,8 @@ use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterfa
  * BasicAuthenticationListener implements Basic HTTP authentication.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @final
  */
-class BasicAuthenticationListener extends AbstractListener
+class BasicAuthenticationListener implements ListenerInterface
 {
     private $tokenStorage;
     private $authenticationManager;
@@ -54,17 +52,9 @@ class BasicAuthenticationListener extends AbstractListener
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function supports(Request $request): ?bool
-    {
-        return null !== $request->headers->get('PHP_AUTH_USER');
-    }
-
-    /**
      * Handles basic authentication.
      */
-    public function authenticate(RequestEvent $event)
+    public function handle(GetResponseEvent $event)
     {
         $request = $event->getRequest();
 

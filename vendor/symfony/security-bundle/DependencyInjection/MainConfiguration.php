@@ -12,6 +12,8 @@
 namespace Symfony\Bundle\SecurityBundle\DependencyInjection;
 
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AbstractFactory;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\SimpleFormFactory;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\SimplePreAuthenticationFactory;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -196,6 +198,11 @@ class MainConfiguration implements ConfigurationInterface
             ->scalarNode('provider')->end()
             ->booleanNode('stateless')->defaultFalse()->end()
             ->scalarNode('context')->cannotBeEmpty()->end()
+            ->booleanNode('logout_on_user_change')
+                ->defaultTrue()
+                ->info('When true, it will trigger a logout for the user if something has changed. Note: No-Op option since 4.0. Will always be true.')
+                ->setDeprecated('The "%path%.%node%" configuration key has been deprecated in Symfony 4.1.')
+            ->end()
             ->arrayNode('logout')
                 ->treatTrueLike([])
                 ->canBeUnset()
@@ -211,7 +218,6 @@ class MainConfiguration implements ConfigurationInterface
                 ->fixXmlConfig('delete_cookie')
                 ->children()
                     ->arrayNode('delete_cookies')
-                        ->normalizeKeys(false)
                         ->beforeNormalization()
                             ->ifTrue(function ($v) { return \is_array($v) && \is_int(key($v)); })
                             ->then(function ($v) { return array_map(function ($v) { return ['name' => $v]; }, $v); })
@@ -232,12 +238,22 @@ class MainConfiguration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end()
+            ->arrayNode('anonymous')
+                ->canBeUnset()
+                ->children()
+                    ->scalarNode('secret')->defaultNull()->end()
+                ->end()
+            ->end()
             ->arrayNode('switch_user')
                 ->canBeUnset()
                 ->children()
                     ->scalarNode('provider')->end()
                     ->scalarNode('parameter')->defaultValue('_switch_user')->end()
                     ->scalarNode('role')->defaultValue('ROLE_ALLOWED_TO_SWITCH')->end()
+                    ->booleanNode('stateless')
+                        ->setDeprecated('The "%path%.%node%" configuration key has been deprecated in Symfony 4.1.')
+                        ->defaultValue(false)
+                    ->end()
                 ->end()
             ->end()
         ;
@@ -249,6 +265,10 @@ class MainConfiguration implements ConfigurationInterface
                 $factoryNode = $firewallNodeBuilder->arrayNode($name)
                     ->canBeUnset()
                 ;
+
+                if ($factory instanceof SimplePreAuthenticationFactory || $factory instanceof SimpleFormFactory) {
+                    $factoryNode->setDeprecated(sprintf('The "%s" security listener is deprecated Symfony 4.2, use Guard instead.', $name));
+                }
 
                 if ($factory instanceof AbstractFactory) {
                     $abstractFactoryKeys[] = $name;
@@ -348,10 +368,9 @@ class MainConfiguration implements ConfigurationInterface
             ->children()
                 ->arrayNode('encoders')
                     ->example([
-                        'App\Entity\User1' => 'auto',
+                        'App\Entity\User1' => 'bcrypt',
                         'App\Entity\User2' => [
-                            'algorithm' => 'auto',
-                            'time_cost' => 8,
+                            'algorithm' => 'bcrypt',
                             'cost' => 13,
                         ],
                     ])
@@ -362,17 +381,7 @@ class MainConfiguration implements ConfigurationInterface
                         ->performNoDeepMerging()
                         ->beforeNormalization()->ifString()->then(function ($v) { return ['algorithm' => $v]; })->end()
                         ->children()
-                            ->scalarNode('algorithm')
-                                ->cannotBeEmpty()
-                                ->validate()
-                                    ->ifTrue(function ($v) { return !\is_string($v); })
-                                    ->thenInvalid('You must provide a string value.')
-                                ->end()
-                            ->end()
-                            ->arrayNode('migrate_from')
-                                ->prototype('scalar')->end()
-                                ->beforeNormalization()->castToArray()->end()
-                            ->end()
+                            ->scalarNode('algorithm')->cannotBeEmpty()->end()
                             ->scalarNode('hash_algorithm')->info('Name of hashing algorithm for PBKDF2 (i.e. sha256, sha512, etc..) See hash_algos() for a list of supported algorithms.')->defaultValue('sha512')->end()
                             ->scalarNode('key_length')->defaultValue(40)->end()
                             ->booleanNode('ignore_case')->defaultFalse()->end()
@@ -381,10 +390,11 @@ class MainConfiguration implements ConfigurationInterface
                             ->integerNode('cost')
                                 ->min(4)
                                 ->max(31)
-                                ->defaultNull()
+                                ->defaultValue(13)
                             ->end()
                             ->scalarNode('memory_cost')->defaultNull()->end()
                             ->scalarNode('time_cost')->defaultNull()->end()
+                            ->scalarNode('threads')->defaultNull()->end()
                             ->scalarNode('id')->end()
                         ->end()
                     ->end()

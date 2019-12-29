@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Security\Guard;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -20,7 +21,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\SecurityEvents;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * A utility class that does much of the *work* during the guard authentication process.
@@ -51,6 +51,8 @@ class GuardAuthenticatorHandler
 
     /**
      * Authenticates the given token in the system.
+     *
+     * @param string $providerKey The name of the provider/firewall being used for authentication
      */
     public function authenticateWithToken(TokenInterface $token, Request $request, string $providerKey = null)
     {
@@ -59,7 +61,7 @@ class GuardAuthenticatorHandler
 
         if (null !== $this->dispatcher) {
             $loginEvent = new InteractiveLoginEvent($request, $token);
-            $this->dispatcher->dispatch($loginEvent, SecurityEvents::INTERACTIVE_LOGIN);
+            $this->dispatcher->dispatch(SecurityEvents::INTERACTIVE_LOGIN, $loginEvent);
         }
     }
 
@@ -118,7 +120,7 @@ class GuardAuthenticatorHandler
         $this->sessionStrategy = $sessionStrategy;
     }
 
-    private function migrateSession(Request $request, TokenInterface $token, ?string $providerKey)
+    private function migrateSession(Request $request, TokenInterface $token, $providerKey)
     {
         if (!$this->sessionStrategy || !$request->hasSession() || !$request->hasPreviousSession() || \in_array($providerKey, $this->statelessProviderKeys, true)) {
             return;

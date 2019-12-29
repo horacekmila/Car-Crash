@@ -55,7 +55,7 @@ class GuardAuthenticationFactory implements SecurityFactoryInterface
         ;
     }
 
-    public function create(ContainerBuilder $container, string $id, array $config, string $userProvider, ?string $defaultEntryPoint)
+    public function create(ContainerBuilder $container, $id, $config, $userProvider, $defaultEntryPoint)
     {
         $authenticatorIds = $config['authenticators'];
         $authenticatorReferences = [];
@@ -92,7 +92,7 @@ class GuardAuthenticationFactory implements SecurityFactoryInterface
         return [$providerId, $listenerId, $entryPointId];
     }
 
-    private function determineEntryPoint(?string $defaultEntryPointId, array $config): string
+    private function determineEntryPoint($defaultEntryPointId, array $config)
     {
         if ($defaultEntryPointId) {
             // explode if they've configured the entry_point, but there is already one

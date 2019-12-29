@@ -28,7 +28,7 @@ class CheckboxListMapper implements DataMapperInterface
     /**
      * {@inheritdoc}
      */
-    public function mapDataToForms($choices, iterable $checkboxes)
+    public function mapDataToForms($choices, $checkboxes)
     {
         if (null === $choices) {
             $choices = [];
@@ -47,7 +47,7 @@ class CheckboxListMapper implements DataMapperInterface
     /**
      * {@inheritdoc}
      */
-    public function mapFormsToData(iterable $checkboxes, &$choices)
+    public function mapFormsToData($checkboxes, &$choices)
     {
         if (!\is_array($choices)) {
             throw new UnexpectedTypeException($choices, 'array');

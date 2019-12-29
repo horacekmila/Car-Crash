@@ -28,7 +28,7 @@ use Twig\NodeVisitor\AbstractNodeVisitor;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
+class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
 {
     private $scope;
 
@@ -40,7 +40,7 @@ final class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
     /**
      * {@inheritdoc}
      */
-    protected function doEnterNode(Node $node, Environment $env): Node
+    protected function doEnterNode(Node $node, Environment $env)
     {
         if ($node instanceof BlockNode || $node instanceof ModuleNode) {
             $this->scope = $this->scope->enter();
@@ -92,7 +92,7 @@ final class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
     /**
      * {@inheritdoc}
      */
-    protected function doLeaveNode(Node $node, Environment $env): ?Node
+    protected function doLeaveNode(Node $node, Environment $env)
     {
         if ($node instanceof TransDefaultDomainNode) {
             return null;
@@ -107,15 +107,16 @@ final class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
 
     /**
      * {@inheritdoc}
-     *
-     * @return int
      */
-    public function getPriority(): int
+    public function getPriority()
     {
         return -10;
     }
 
-    private function isNamedArguments(Node $arguments): bool
+    /**
+     * @return bool
+     */
+    private function isNamedArguments($arguments)
     {
         foreach ($arguments as $name => $node) {
             if (!\is_int($name)) {
@@ -126,7 +127,7 @@ final class TranslationDefaultDomainNodeVisitor extends AbstractNodeVisitor
         return false;
     }
 
-    private function getVarName(): string
+    private function getVarName()
     {
         return sprintf('__internal_%s', hash('sha256', uniqid(mt_rand(), true), false));
     }

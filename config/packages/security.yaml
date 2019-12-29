@@ -8,27 +8,25 @@ security:
 
     encoders:
         App\Entity\User:
-            algorithm: 'auto'
+            algorithm: 'bcrypt'
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            anonymous: lazy
-            guard:
-                authenticators:
-                    - App\Security\UserAuthenticator
+            anonymous: ~
             form_login:
-                default_target_path: homepage
+                check_path: app_login
+                login_path: app_login
+
             logout:
                 path: app_logout
-                # where to redirect after logout
-                # target: app_any_route
+
 
     access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: /login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, roles: ROLE_USER }
 
     role_hierarchy:

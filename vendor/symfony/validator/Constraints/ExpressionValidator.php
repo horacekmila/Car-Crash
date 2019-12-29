@@ -14,6 +14,7 @@ namespace Symfony\Component\Validator\Constraints;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\LogicException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
@@ -24,7 +25,7 @@ class ExpressionValidator extends ConstraintValidator
 {
     private $expressionLanguage;
 
-    public function __construct(ExpressionLanguage $expressionLanguage = null)
+    public function __construct($propertyAccessor = null, ExpressionLanguage $expressionLanguage = null)
     {
         $this->expressionLanguage = $expressionLanguage;
     }
@@ -35,7 +36,7 @@ class ExpressionValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Expression) {
-            throw new UnexpectedTypeException($constraint, Expression::class);
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Expression');
         }
 
         $variables = $constraint->values;
@@ -50,9 +51,12 @@ class ExpressionValidator extends ConstraintValidator
         }
     }
 
-    private function getExpressionLanguage(): ExpressionLanguage
+    private function getExpressionLanguage()
     {
         if (null === $this->expressionLanguage) {
+            if (!class_exists('Symfony\Component\ExpressionLanguage\ExpressionLanguage')) {
+                throw new LogicException('Unable to use expressions as the Symfony ExpressionLanguage component is not installed.');
+            }
             $this->expressionLanguage = new ExpressionLanguage();
         }
 

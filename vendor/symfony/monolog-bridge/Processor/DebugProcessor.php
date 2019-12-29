@@ -33,7 +33,7 @@ class DebugProcessor implements DebugLoggerInterface, ResetInterface
         $hash = $this->requestStack && ($request = $this->requestStack->getCurrentRequest()) ? spl_object_hash($request) : '';
 
         $this->records[$hash][] = [
-            'timestamp' => $record['datetime'] instanceof \DateTimeInterface ? $record['datetime']->getTimestamp() : strtotime($record['datetime']),
+            'timestamp' => $record['datetime']->getTimestamp(),
             'message' => $record['message'],
             'priority' => $record['level'],
             'priorityName' => $record['level_name'],
@@ -58,10 +58,16 @@ class DebugProcessor implements DebugLoggerInterface, ResetInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @param Request|null $request
      */
-    public function getLogs(Request $request = null)
+    public function getLogs(/* Request $request = null */)
     {
-        if (null !== $request) {
+        if (\func_num_args() < 1 && __CLASS__ !== \get_class($this) && __CLASS__ !== (new \ReflectionMethod($this, __FUNCTION__))->getDeclaringClass()->getName() && !$this instanceof \PHPUnit\Framework\MockObject\MockObject && !$this instanceof \Prophecy\Prophecy\ProphecySubjectInterface) {
+            @trigger_error(sprintf('The "%s()" method will have a new "Request $request = null" argument in version 5.0, not defining it is deprecated since Symfony 4.2.', __METHOD__), E_USER_DEPRECATED);
+        }
+
+        if (1 <= \func_num_args() && null !== $request = func_get_arg(0)) {
             return $this->records[spl_object_hash($request)] ?? [];
         }
 
@@ -74,10 +80,16 @@ class DebugProcessor implements DebugLoggerInterface, ResetInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @param Request|null $request
      */
-    public function countErrors(Request $request = null)
+    public function countErrors(/* Request $request = null */)
     {
-        if (null !== $request) {
+        if (\func_num_args() < 1 && __CLASS__ !== \get_class($this) && __CLASS__ !== (new \ReflectionMethod($this, __FUNCTION__))->getDeclaringClass()->getName() && !$this instanceof \PHPUnit\Framework\MockObject\MockObject && !$this instanceof \Prophecy\Prophecy\ProphecySubjectInterface) {
+            @trigger_error(sprintf('The "%s()" method will have a new "Request $request = null" argument in version 5.0, not defining it is deprecated since Symfony 4.2.', __METHOD__), E_USER_DEPRECATED);
+        }
+
+        if (1 <= \func_num_args() && null !== $request = func_get_arg(0)) {
             return $this->errorCount[spl_object_hash($request)] ?? 0;
         }
 

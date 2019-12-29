@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Form;
 
-use Symfony\Contracts\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\Event;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
@@ -22,7 +22,8 @@ class FormEvent extends Event
     protected $data;
 
     /**
-     * @param mixed $data The data
+     * @param FormInterface $form The associated form
+     * @param mixed         $data The data
      */
     public function __construct(FormInterface $form, $data)
     {

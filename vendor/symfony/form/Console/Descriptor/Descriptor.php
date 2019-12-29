@@ -106,7 +106,7 @@ abstract class Descriptor implements DescriptorInterface
         $this->extensions = array_keys($this->extensions);
     }
 
-    protected function getOptionDefinition(OptionsResolver $optionsResolver, string $option)
+    protected function getOptionDefinition(OptionsResolver $optionsResolver, $option)
     {
         $definition = [
             'required' => $optionsResolver->isRequired($option),
@@ -120,7 +120,7 @@ abstract class Descriptor implements DescriptorInterface
             'lazy' => 'getLazyClosures',
             'allowedTypes' => 'getAllowedTypes',
             'allowedValues' => 'getAllowedValues',
-            'normalizers' => 'getNormalizers',
+            'normalizer' => 'getNormalizer',
             'deprecationMessage' => 'getDeprecationMessage',
         ];
 
@@ -167,7 +167,7 @@ abstract class Descriptor implements DescriptorInterface
         $this->extensionOptions = $filterByDeprecated($this->extensionOptions);
     }
 
-    private function getParentOptionsResolver(ResolvedFormTypeInterface $type): OptionsResolver
+    private function getParentOptionsResolver(ResolvedFormTypeInterface $type)
     {
         $this->parents[$class = \get_class($type->getInnerType())] = [];
 

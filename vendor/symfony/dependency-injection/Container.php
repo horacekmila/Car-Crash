@@ -39,7 +39,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-class Container implements ContainerInterface, ResetInterface
+class Container implements ResettableContainerInterface
 {
     protected $parameterBag;
     protected $services = [];
@@ -107,7 +107,7 @@ class Container implements ContainerInterface, ResetInterface
      *
      * @throws InvalidArgumentException if the parameter is not defined
      */
-    public function getParameter(string $name)
+    public function getParameter($name)
     {
         return $this->parameterBag->get($name);
     }
@@ -119,7 +119,7 @@ class Container implements ContainerInterface, ResetInterface
      *
      * @return bool The presence of parameter in container
      */
-    public function hasParameter(string $name)
+    public function hasParameter($name)
     {
         return $this->parameterBag->has($name);
     }
@@ -130,7 +130,7 @@ class Container implements ContainerInterface, ResetInterface
      * @param string $name  The parameter name
      * @param mixed  $value The parameter value
      */
-    public function setParameter(string $name, $value)
+    public function setParameter($name, $value)
     {
         $this->parameterBag->set($name, $value);
     }
@@ -140,8 +140,11 @@ class Container implements ContainerInterface, ResetInterface
      *
      * Setting a synthetic service to null resets it: has() returns false and get()
      * behaves in the same way as if the service was never created.
+     *
+     * @param string $id      The service identifier
+     * @param object $service The service instance
      */
-    public function set(string $id, ?object $service)
+    public function set($id, $service)
     {
         // Runs the internal initializer; used by the dumped container to include always-needed files
         if (isset($this->privates['service_container']) && $this->privates['service_container'] instanceof \Closure) {
@@ -207,7 +210,7 @@ class Container implements ContainerInterface, ResetInterface
      * @param string $id              The service identifier
      * @param int    $invalidBehavior The behavior when the service does not exist
      *
-     * @return object|null The associated service
+     * @return object The associated service
      *
      * @throws ServiceCircularReferenceException When a circular reference is detected
      * @throws ServiceNotFoundException          When the service is not defined
@@ -215,7 +218,7 @@ class Container implements ContainerInterface, ResetInterface
      *
      * @see Reference
      */
-    public function get($id, int $invalidBehavior = /* self::EXCEPTION_ON_INVALID_REFERENCE */ 1)
+    public function get($id, $invalidBehavior = /* self::EXCEPTION_ON_INVALID_REFERENCE */ 1)
     {
         return $this->services[$id]
             ?? $this->services[$id = $this->aliases[$id] ?? $id]
@@ -273,8 +276,6 @@ class Container implements ContainerInterface, ResetInterface
 
             throw new ServiceNotFoundException($id, null, null, $alternatives);
         }
-
-        return null;
     }
 
     /**
@@ -284,7 +285,7 @@ class Container implements ContainerInterface, ResetInterface
      *
      * @return bool true if service has already been initialized, false otherwise
      */
-    public function initialized(string $id)
+    public function initialized($id)
     {
         if (isset($this->aliases[$id])) {
             $id = $this->aliases[$id];
@@ -323,7 +324,7 @@ class Container implements ContainerInterface, ResetInterface
      */
     public function getServiceIds()
     {
-        return array_map('strval', array_unique(array_merge(['service_container'], array_keys($this->fileMap), array_keys($this->methodMap), array_keys($this->aliases), array_keys($this->services))));
+        return array_map('strval', array_unique(array_merge(['service_container'], array_keys($this->fileMap), array_keys($this->methodMap), array_keys($this->services))));
     }
 
     /**
@@ -362,6 +363,8 @@ class Container implements ContainerInterface, ResetInterface
 
     /**
      * Creates a service by requiring its factory file.
+     *
+     * @return object The service created by the file
      */
     protected function load($file)
     {
@@ -413,14 +416,9 @@ class Container implements ContainerInterface, ResetInterface
     }
 
     /**
-     * @param string|false $registry
-     * @param string|bool  $load
-     *
-     * @return mixed
-     *
      * @internal
      */
-    final protected function getService($registry, string $id, ?string $method, $load)
+    final protected function getService($registry, $id, $method, $load)
     {
         if ('service_container' === $id) {
             return $this;

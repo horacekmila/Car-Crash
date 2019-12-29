@@ -22,8 +22,7 @@ class MessageDigestPasswordEncoder extends BasePasswordEncoder
 {
     private $algorithm;
     private $encodeHashAsBase64;
-    private $iterations = 1;
-    private $encodedLength = -1;
+    private $iterations;
 
     /**
      * @param string $algorithm          The digest algorithm to use
@@ -34,20 +33,13 @@ class MessageDigestPasswordEncoder extends BasePasswordEncoder
     {
         $this->algorithm = $algorithm;
         $this->encodeHashAsBase64 = $encodeHashAsBase64;
-
-        try {
-            $this->encodedLength = \strlen($this->encodePassword('', 'salt'));
-        } catch (\LogicException $e) {
-            // ignore algorithm not supported
-        }
-
         $this->iterations = $iterations;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function encodePassword(string $raw, ?string $salt)
+    public function encodePassword($raw, $salt)
     {
         if ($this->isPasswordTooLong($raw)) {
             throw new BadCredentialsException('Invalid password.');
@@ -71,12 +63,8 @@ class MessageDigestPasswordEncoder extends BasePasswordEncoder
     /**
      * {@inheritdoc}
      */
-    public function isPasswordValid(string $encoded, string $raw, ?string $salt)
+    public function isPasswordValid($encoded, $raw, $salt)
     {
-        if (\strlen($encoded) !== $this->encodedLength || false !== strpos($encoded, '$')) {
-            return false;
-        }
-
         return !$this->isPasswordTooLong($raw) && $this->comparePasswords($encoded, $this->encodePassword($raw, $salt));
     }
 }

@@ -38,13 +38,17 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Normalizes keys between the different configuration formats.
      *
      * Namely, you mostly have foo_bar in YAML while you have foo-bar in XML.
      * After running this method, all keys are normalized to foo_bar.
      *
      * If you have a mixed key like foo-bar_moo, it will not be altered.
      * The key will also not be altered if the target key already exists.
+     *
+     * @param mixed $value
+     *
+     * @return array The value with normalized keys
      */
     protected function preNormalize($value)
     {
@@ -98,34 +102,42 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     /**
      * Sets whether to add default values for this array if it has not been
      * defined in any of the configuration files.
+     *
+     * @param bool $boolean
      */
-    public function setAddIfNotSet(bool $boolean)
+    public function setAddIfNotSet($boolean)
     {
-        $this->addIfNotSet = $boolean;
+        $this->addIfNotSet = (bool) $boolean;
     }
 
     /**
      * Sets whether false is allowed as value indicating that the array should be unset.
+     *
+     * @param bool $allow
      */
-    public function setAllowFalse(bool $allow)
+    public function setAllowFalse($allow)
     {
-        $this->allowFalse = $allow;
+        $this->allowFalse = (bool) $allow;
     }
 
     /**
      * Sets whether new keys can be defined in subsequent configurations.
+     *
+     * @param bool $allow
      */
-    public function setAllowNewKeys(bool $allow)
+    public function setAllowNewKeys($allow)
     {
-        $this->allowNewKeys = $allow;
+        $this->allowNewKeys = (bool) $allow;
     }
 
     /**
      * Sets if deep merging should occur.
+     *
+     * @param bool $boolean
      */
-    public function setPerformDeepMerging(bool $boolean)
+    public function setPerformDeepMerging($boolean)
     {
-        $this->performDeepMerging = $boolean;
+        $this->performDeepMerging = (bool) $boolean;
     }
 
     /**
@@ -134,16 +146,16 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
      * @param bool $boolean To allow extra keys
      * @param bool $remove  To remove extra keys
      */
-    public function setIgnoreExtraKeys(bool $boolean, bool $remove = true)
+    public function setIgnoreExtraKeys($boolean, $remove = true)
     {
-        $this->ignoreExtraKeys = $boolean;
+        $this->ignoreExtraKeys = (bool) $boolean;
         $this->removeExtraKeys = $this->ignoreExtraKeys && $remove;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setName(string $name)
+    public function setName($name)
     {
         $this->name = $name;
     }
@@ -328,9 +340,11 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     /**
      * Remaps multiple singular values to a single plural value.
      *
+     * @param array $value The source values
+     *
      * @return array The remapped values
      */
-    protected function remapXml(array $value)
+    protected function remapXml($value)
     {
         foreach ($this->xmlRemappings as list($singular, $plural)) {
             if (!isset($value[$singular])) {
@@ -382,12 +396,7 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
             }
 
             if (!isset($this->children[$k])) {
-                if (!$this->ignoreExtraKeys || $this->removeExtraKeys) {
-                    throw new \RuntimeException('merge() expects a normalized config array.');
-                }
-
-                $leftSide[$k] = $v;
-                continue;
+                throw new \RuntimeException('merge() expects a normalized config array.');
             }
 
             $leftSide[$k] = $this->children[$k]->merge($leftSide[$k], $v);

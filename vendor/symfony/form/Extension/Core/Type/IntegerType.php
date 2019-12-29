@@ -59,6 +59,10 @@ class IntegerType extends AbstractType
             IntegerToLocalizedStringTransformer::ROUND_UP,
             IntegerToLocalizedStringTransformer::ROUND_CEILING,
         ]);
+
+        $resolver->setDefined('scale');
+        $resolver->setAllowedTypes('scale', ['null', 'int']);
+        $resolver->setDeprecated('scale');
     }
 
     /**

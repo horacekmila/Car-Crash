@@ -11,7 +11,7 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Test;
 
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 /**
@@ -21,35 +21,22 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
  */
 abstract class WebTestCase extends KernelTestCase
 {
-    use WebTestAssertionsTrait;
-    use MailerAssertionsTrait;
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        self::getClient(null);
-    }
-
     /**
-     * Creates a KernelBrowser.
+     * Creates a Client.
      *
      * @param array $options An array of options to pass to the createKernel method
      * @param array $server  An array of server parameters
      *
-     * @return KernelBrowser A KernelBrowser instance
+     * @return Client A Client instance
      */
     protected static function createClient(array $options = [], array $server = [])
     {
-        if (static::$booted) {
-            throw new \LogicException(sprintf('Booting the kernel before calling %s() is not supported, the kernel should only be booted once.', __METHOD__));
-        }
-
         $kernel = static::bootKernel($options);
 
         try {
             $client = $kernel->getContainer()->get('test.client');
         } catch (ServiceNotFoundException $e) {
-            if (class_exists(KernelBrowser::class)) {
+            if (class_exists(Client::class)) {
                 throw new \LogicException('You cannot create the client used in functional tests if the "framework.test" config is not set to true.');
             }
             throw new \LogicException('You cannot create the client used in functional tests if the BrowserKit component is not available. Try running "composer require symfony/browser-kit"');
@@ -57,6 +44,6 @@ abstract class WebTestCase extends KernelTestCase
 
         $client->setServerParameters($server);
 
-        return self::getClient($client);
+        return $client;
     }
 }
